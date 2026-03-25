@@ -1,8 +1,20 @@
+import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SplashScreen from "expo-splash-screen";
+import * as Font from "expo-font";
+import { Ionicons } from "@expo/vector-icons";
 import { WorkoutProvider } from "@/context/WorkoutContext";
 
+SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
+  useEffect(() => {
+    Font.loadAsync(Ionicons.font).then(() => {
+      SplashScreen.hideAsync();
+    });
+  }, []);
+
   return (
     <WorkoutProvider>
       <StatusBar style="light" />
