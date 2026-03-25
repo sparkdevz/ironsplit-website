@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ColorScheme, ThemeColors, getTheme } from "@/constants/theme";
 
 export interface SetData {
   weight: string;
@@ -11,6 +12,9 @@ interface WorkoutContextType {
   setWeek: (w: number) => void;
   unit: "kg" | "lbs";
   setUnit: (u: "kg" | "lbs") => void;
+  colorScheme: ColorScheme;
+  toggleColorScheme: () => void;
+  theme: ThemeColors;
   getSessionData: (day: string, exIndex: number, w?: number) => SetData[];
   saveSessionData: (day: string, exIndex: number, data: SetData[]) => Promise<void>;
   clearWeek: (w: number) => Promise<void>;
@@ -25,6 +29,7 @@ const WorkoutContext = createContext<WorkoutContextType | null>(null);
 export function WorkoutProvider({ children }: { children: React.ReactNode }) {
   const [week, setWeekState] = useState<number>(1);
   const [unit, setUnitState] = useState<"kg" | "lbs">("lbs");
+  const [colorScheme, setColorScheme] = useState<ColorScheme>("dark");
   const [sessionCache, setSessionCache] = useState<Record<string, SetData[]>>({});
   const [swapCache, setSwapCache] = useState<Record<string, number>>({});
   const [reloadTrigger, setReloadTrigger] = useState<number>(0);
@@ -36,7 +41,8 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
         if (savedUnit === "kg" || savedUnit === "lbs") setUnitState(savedUnit);
         const savedWeek = await AsyncStorage.getItem("wl_week");
         if (savedWeek) setWeekState(parseInt(savedWeek));
-        // Load all swaps
+        const savedScheme = await AsyncStorage.getItem("wl_scheme");
+        if (savedScheme === "dark" || savedScheme === "light") setColorScheme(savedScheme);
         const keys = await AsyncStorage.getAllKeys();
         const swapKeys = keys.filter((k) => k.startsWith("wl_swap_"));
         if (swapKeys.length > 0) {
@@ -59,6 +65,14 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
   const setUnit = useCallback(async (u: "kg" | "lbs") => {
     setUnitState(u);
     await AsyncStorage.setItem("wl_unit", u);
+  }, []);
+
+  const toggleColorScheme = useCallback(async () => {
+    setColorScheme((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      AsyncStorage.setItem("wl_scheme", next);
+      return next;
+    });
   }, []);
 
   const storageKey = (day: string, exIndex: number, w: number) =>
@@ -138,6 +152,9 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
         setWeek,
         unit,
         setUnit,
+        colorScheme,
+        toggleColorScheme,
+        theme: getTheme(colorScheme),
         getSessionData,
         saveSessionData,
         clearWeek,

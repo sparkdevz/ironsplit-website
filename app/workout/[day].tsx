@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DAYS, DAY_COLORS, DayKey, Exercise } from "@/constants/workoutData";
 import { useWorkout, SetData } from "@/context/WorkoutContext";
 import { getExerciseImageUri } from "@/hooks/useExerciseImage";
+import { ThemeColors } from "@/constants/theme";
 import AdBanner from "@/components/AdBanner";
 
 type TabType = "info" | "track" | "variations";
@@ -26,14 +27,14 @@ interface ExCardState {
 }
 
 // ── Exercise image sub-component ───────────────────────────────────────────
-function ExerciseImage({ name }: { name: string }) {
+function ExerciseImage({ name, theme }: { name: string; theme: ThemeColors }) {
   const uri = getExerciseImageUri(name);
   const [imgError, setImgError] = useState(false);
 
   if (!uri || imgError) {
     return (
-      <View style={imgStyles.placeholder}>
-        <Text style={imgStyles.noImg}>No image available</Text>
+      <View style={[imgStyles.placeholder, { backgroundColor: theme.cardAlt, borderColor: theme.cardBorder }]}>
+        <Text style={[imgStyles.noImg, { color: theme.textFaint }]}>No image available</Text>
       </View>
     );
   }
@@ -41,7 +42,7 @@ function ExerciseImage({ name }: { name: string }) {
   return (
     <Image
       source={{ uri }}
-      style={imgStyles.image}
+      style={[imgStyles.image, { backgroundColor: theme.cardAlt }]}
       resizeMode="contain"
       onError={() => setImgError(true)}
     />
@@ -49,44 +50,31 @@ function ExerciseImage({ name }: { name: string }) {
 }
 
 const imgStyles = StyleSheet.create({
-  image: {
-    width: "100%",
-    height: 200,
-    borderRadius: 10,
-    backgroundColor: "#222",
-    marginBottom: 14,
-  },
+  image: { width: "100%", height: 200, borderRadius: 10, marginBottom: 14 },
   placeholder: {
     width: "100%",
     height: 120,
     borderRadius: 10,
-    backgroundColor: "#1e1e1e",
     borderWidth: 1,
-    borderColor: "#2a2a2a",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
   },
-  noImg: { fontSize: 11, color: "#444" },
+  noImg: { fontSize: 11 },
 });
 
 // ── Main screen ────────────────────────────────────────────────────────────
 export default function WorkoutDayScreen() {
   const { day } = useLocalSearchParams<{ day: string }>();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { week, unit, getSessionData, saveSessionData, getSwap, saveSwap, resetSwap, reloadTrigger } = useWorkout();
+  const { week, unit, getSessionData, saveSessionData, getSwap, saveSwap, resetSwap, reloadTrigger, theme } = useWorkout();
 
   const dayKey = day as DayKey;
   const dayData = DAYS[dayKey];
   const colors = DAY_COLORS[dayKey];
 
   const [cardStates, setCardStates] = useState<ExCardState[]>(() =>
-    dayData.exercises.map(() => ({
-      activeTab: "info" as TabType,
-      swappedTo: -1,
-      savedThisSession: false,
-    }))
+    dayData.exercises.map(() => ({ activeTab: "info" as TabType, swappedTo: -1, savedThisSession: false }))
   );
 
   const [inputData, setInputData] = useState<SetData[][]>(() =>
@@ -123,11 +111,8 @@ export default function WorkoutDayScreen() {
       next[exIndex] = { ...next[exIndex], swappedTo: varIndex, activeTab: "info" };
       return next;
     });
-    if (varIndex === -1) {
-      resetSwap(dayKey, exIndex);
-    } else {
-      saveSwap(dayKey, exIndex, varIndex);
-    }
+    if (varIndex === -1) resetSwap(dayKey, exIndex);
+    else saveSwap(dayKey, exIndex, varIndex);
   }
 
   function updateInput(exIndex: number, setIndex: number, field: "weight" | "reps", value: string) {
@@ -168,19 +153,16 @@ export default function WorkoutDayScreen() {
   }
 
   const totalSets = dayData.exercises.reduce((a, ex) => a + ex.sets, 0);
-  const loggedSets = inputData.reduce((a, sets) => {
-    return a + sets.filter((s) => s.weight || s.reps).length;
-  }, 0);
+  const loggedSets = inputData.reduce((a, sets) => a + sets.filter((s) => s.weight || s.reps).length, 0);
+  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   if (!dayData) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Day not found</Text>
+      <View style={[styles.errorContainer, { backgroundColor: theme.bg }]}>
+        <Text style={[styles.errorText, { color: theme.text }]}>Day not found</Text>
       </View>
     );
   }
-
-  const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   return (
     <>
@@ -192,7 +174,7 @@ export default function WorkoutDayScreen() {
         }}
       />
       <KeyboardAvoidingView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: theme.bg }]}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
@@ -204,7 +186,7 @@ export default function WorkoutDayScreen() {
           {/* Day header */}
           <View style={[styles.dayHeader, { backgroundColor: colors.light }]}>
             <Text style={[styles.dayTitle, { color: colors.primary }]}>{dayData.dayLabel}</Text>
-            <Text style={styles.daySub}>Week {week} · {unit}</Text>
+            <Text style={[styles.daySub, { color: theme.textFaint }]}>Week {week} · {unit}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tagsRow}>
               {dayData.muscles.map((m) => (
                 <View key={m} style={[styles.muscleTag, { backgroundColor: colors.tag }]}>
@@ -215,18 +197,18 @@ export default function WorkoutDayScreen() {
           </View>
 
           {/* Summary bar */}
-          <View style={styles.summaryBar}>
+          <View style={[styles.summaryBar, { backgroundColor: theme.bgSecondary, borderBottomColor: theme.separator }]}>
             <View style={styles.summaryItem}>
               <Text style={[styles.summaryVal, { color: colors.primary }]}>{dayData.exercises.length}</Text>
-              <Text style={styles.summaryLabel}>EXERCISES</Text>
+              <Text style={[styles.summaryLabel, { color: theme.textFaint }]}>EXERCISES</Text>
             </View>
             <View style={styles.summaryItem}>
               <Text style={[styles.summaryVal, { color: colors.primary }]}>{totalSets}</Text>
-              <Text style={styles.summaryLabel}>TOTAL SETS</Text>
+              <Text style={[styles.summaryLabel, { color: theme.textFaint }]}>TOTAL SETS</Text>
             </View>
             <View style={styles.summaryItem}>
               <Text style={[styles.summaryVal, { color: colors.primary }]}>{loggedSets}</Text>
-              <Text style={styles.summaryLabel}>LOGGED</Text>
+              <Text style={[styles.summaryLabel, { color: theme.textFaint }]}>LOGGED</Text>
             </View>
           </View>
 
@@ -256,6 +238,7 @@ export default function WorkoutDayScreen() {
                 currData={currData}
                 unit={unit}
                 colors={colors}
+                theme={theme}
                 onSetTab={(tab) => setTab(exIndex, tab)}
                 onSetSwap={(vi) => setSwap(exIndex, vi)}
                 onUpdateInput={(setIdx, field, val) => updateInput(exIndex, setIdx, field, val)}
@@ -265,8 +248,8 @@ export default function WorkoutDayScreen() {
           })}
 
           {/* Tip box */}
-          <View style={styles.tipBox}>
-            <Text style={styles.tipText}>💡 {dayData.tip}</Text>
+          <View style={[styles.tipBox, { backgroundColor: theme.tipBg, borderLeftColor: theme.tipBorder }]}>
+            <Text style={[styles.tipText, { color: theme.textMuted }]}>💡 {dayData.tip}</Text>
           </View>
         </ScrollView>
         <AdBanner />
@@ -275,7 +258,7 @@ export default function WorkoutDayScreen() {
   );
 }
 
-// ── ExerciseCard component (allows hook use per-card) ──────────────────────
+// ── ExerciseCard ───────────────────────────────────────────────────────────
 interface ExerciseCardProps {
   ex: Exercise;
   exIndex: number;
@@ -289,6 +272,7 @@ interface ExerciseCardProps {
   currData: SetData[];
   unit: string;
   colors: { primary: string; light: string; tag: string; tagText: string };
+  theme: ThemeColors;
   onSetTab: (tab: TabType) => void;
   onSetSwap: (vi: number) => void;
   onUpdateInput: (setIdx: number, field: "weight" | "reps", val: string) => void;
@@ -297,18 +281,18 @@ interface ExerciseCardProps {
 
 function ExerciseCard({
   ex, exIndex, activeName, activeDetail, activeTab, isSwapped, swapIdx,
-  savedThisSession, prevData, currData, unit, colors,
+  savedThisSession, prevData, currData, unit, colors, theme,
   onSetTab, onSetSwap, onUpdateInput, onSave,
 }: ExerciseCardProps) {
   return (
-    <View style={styles.exCard}>
-      {/* Card header */}
+    <View style={[styles.exCard, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}>
+      {/* Header */}
       <View style={styles.exCardHeader}>
         <View style={[styles.exNum, { backgroundColor: colors.primary }]}>
           <Text style={styles.exNumText}>{exIndex + 1}</Text>
         </View>
         <View style={styles.exHeaderMain}>
-          <Text style={styles.exName}>{activeName}</Text>
+          <Text style={[styles.exName, { color: theme.text }]}>{activeName}</Text>
           <View style={styles.exBadges}>
             <View style={[styles.badge, ex.type === "compound" ? styles.badgeCompound : styles.badgeIsolation]}>
               <Text style={[styles.badgeText, ex.type === "compound" ? styles.badgeCompoundText : styles.badgeIsolationText]}>
@@ -324,19 +308,19 @@ function ExerciseCard({
         </View>
         <View style={styles.exSetsReps}>
           <Text style={[styles.exSR, { color: colors.primary }]}>{ex.sets}×{ex.reps}</Text>
-          <Text style={styles.exSRLabel}>sets×reps</Text>
+          <Text style={[styles.exSRLabel, { color: theme.textFaint }]}>sets×reps</Text>
         </View>
       </View>
 
-      {/* Card tabs */}
-      <View style={styles.cardTabs}>
+      {/* Tabs */}
+      <View style={[styles.cardTabs, { borderTopColor: theme.separator, borderBottomColor: theme.separator }]}>
         {(["info", "track", "variations"] as TabType[]).map((tab) => (
           <TouchableOpacity
             key={tab}
-            style={[styles.cardTab, activeTab === tab && styles.cardTabActive]}
+            style={[styles.cardTab, activeTab === tab && { borderBottomWidth: 2, borderBottomColor: colors.primary }]}
             onPress={() => onSetTab(tab)}
           >
-            <Text style={[styles.cardTabText, activeTab === tab && { color: colors.primary }]}>
+            <Text style={[styles.cardTabText, { color: activeTab === tab ? colors.primary : theme.tabInactive }]}>
               {tab === "info" ? "📋 Info" : tab === "track" ? "📊 Track" : "🔄 Variations"}
             </Text>
           </TouchableOpacity>
@@ -346,14 +330,11 @@ function ExerciseCard({
       {/* Info pane */}
       {activeTab === "info" && (
         <View style={styles.cardPane}>
-          <ExerciseImage name={activeName} />
-          <Text style={styles.exDetail}>{activeDetail}</Text>
+          <ExerciseImage name={activeName} theme={theme} />
+          <Text style={[styles.exDetail, { color: theme.textMuted }]}>{activeDetail}</Text>
           {isSwapped && (
-            <TouchableOpacity
-              style={styles.resetBtn}
-              onPress={() => onSetSwap(-1)}
-            >
-              <Text style={styles.resetBtnText}>↩ Reset to original</Text>
+            <TouchableOpacity style={[styles.resetBtn, { borderColor: theme.inputBorder }]} onPress={() => onSetSwap(-1)}>
+              <Text style={[styles.resetBtnText, { color: theme.textMuted }]}>↩ Reset to original</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -363,10 +344,10 @@ function ExerciseCard({
       {activeTab === "track" && (
         <View style={styles.cardPane}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.thCell, { width: 46 }]}>SET</Text>
-            <Text style={styles.thCell}>WEIGHT ({unit})</Text>
-            <Text style={styles.thCell}>REPS DONE</Text>
-            <Text style={[styles.thCell, { width: 70 }]}>vs PREV</Text>
+            <Text style={[styles.thCell, { width: 46, color: theme.textFaint }]}>SET</Text>
+            <Text style={[styles.thCell, { color: theme.textFaint }]}>WEIGHT ({unit})</Text>
+            <Text style={[styles.thCell, { color: theme.textFaint }]}>REPS DONE</Text>
+            <Text style={[styles.thCell, { width: 70, color: theme.textFaint }]}>vs PREV</Text>
           </View>
           {Array.from({ length: ex.sets }, (_, setIdx) => {
             const cur = currData[setIdx];
@@ -385,45 +366,46 @@ function ExerciseCard({
 
             return (
               <View key={setIdx} style={styles.tableRow}>
-                <Text style={styles.setLabel}>Set {setIdx + 1}</Text>
+                <Text style={[styles.setLabel, { color: theme.textFaint }]}>Set {setIdx + 1}</Text>
                 <TextInput
-                  style={[styles.setInput, hasWeight && styles.setInputFilled]}
+                  style={[
+                    styles.setInput,
+                    { backgroundColor: theme.input, borderColor: theme.inputBorder, color: theme.text },
+                    hasWeight && { backgroundColor: theme.inputFilled, borderColor: theme.inputFilledBorder },
+                  ]}
                   value={cur?.weight ?? ""}
                   onChangeText={(v) => onUpdateInput(setIdx, "weight", v)}
                   keyboardType="decimal-pad"
                   placeholder="—"
-                  placeholderTextColor="#555"
+                  placeholderTextColor={theme.textFaint}
                 />
                 <TextInput
-                  style={[styles.setInput, hasReps && styles.setInputFilled]}
+                  style={[
+                    styles.setInput,
+                    { backgroundColor: theme.input, borderColor: theme.inputBorder, color: theme.text },
+                    hasReps && { backgroundColor: theme.inputFilled, borderColor: theme.inputFilledBorder },
+                  ]}
                   value={cur?.reps ?? ""}
                   onChangeText={(v) => onUpdateInput(setIdx, "reps", v)}
                   keyboardType="decimal-pad"
                   placeholder="—"
-                  placeholderTextColor="#555"
+                  placeholderTextColor={theme.textFaint}
                 />
                 <View style={[styles.prevCell, { width: 70 }]}>
                   {prev?.weight || prev?.reps ? (
                     <>
-                      <Text style={styles.prevText}>{prev.weight || "?"}×{prev.reps || "?"}</Text>
-                      {arrow !== "" && (
-                        <Text style={[styles.arrowText, { color: arrowColor }]}>{arrow}</Text>
-                      )}
+                      <Text style={[styles.prevText, { color: theme.textFaint }]}>{prev.weight || "?"}×{prev.reps || "?"}</Text>
+                      {arrow !== "" && <Text style={[styles.arrowText, { color: arrowColor }]}>{arrow}</Text>}
                     </>
                   ) : (
-                    <Text style={styles.prevEmpty}>—</Text>
+                    <Text style={[styles.prevEmpty, { color: theme.textFaint }]}>—</Text>
                   )}
                 </View>
               </View>
             );
           })}
-          <TouchableOpacity
-            style={[styles.saveBtn, { backgroundColor: colors.primary }]}
-            onPress={onSave}
-          >
-            <Text style={styles.saveBtnText}>
-              {savedThisSession ? "✓ Saved!" : "Save Session"}
-            </Text>
+          <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.primary }]} onPress={onSave}>
+            <Text style={styles.saveBtnText}>{savedThisSession ? "✓ Saved!" : "Save Session"}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -431,27 +413,29 @@ function ExerciseCard({
       {/* Variations pane */}
       {activeTab === "variations" && (
         <View style={styles.cardPane}>
-          <Text style={styles.varNote}>
+          <Text style={[styles.varNote, { color: theme.textFaint }]}>
             Select any exercise below to swap it in. Your tracking data stays in place.
           </Text>
 
           {/* Original */}
-          <View style={[styles.varItem, !isSwapped && styles.varItemActive]}>
+          <View style={[styles.varItem, { backgroundColor: theme.cardAlt, borderColor: theme.cardBorder },
+            !isSwapped && { backgroundColor: theme.inputFilled, borderColor: theme.inputFilledBorder }]}>
             <View style={styles.varRow}>
-              <View style={[styles.varNum, !isSwapped && { backgroundColor: colors.primary }]}>
-                <Text style={[styles.varNumText, !isSwapped && { color: "#fff" }]}>★</Text>
+              <View style={[styles.varNum, { backgroundColor: theme.input }, !isSwapped && { backgroundColor: colors.primary }]}>
+                <Text style={[styles.varNumText, { color: theme.textFaint }, !isSwapped && { color: "#fff" }]}>★</Text>
               </View>
-              <Text style={styles.varName}>{ex.name}</Text>
-              <View style={styles.varEquip}>
-                <Text style={styles.varEquipText}>Original</Text>
+              <Text style={[styles.varName, { color: theme.textMuted }]}>{ex.name}</Text>
+              <View style={[styles.varEquip, { backgroundColor: theme.cardBorder }]}>
+                <Text style={[styles.varEquipText, { color: theme.textFaint }]}>Original</Text>
               </View>
             </View>
             <TouchableOpacity
-              style={[styles.swapBtn, !isSwapped && { backgroundColor: colors.primary, borderColor: colors.primary }]}
+              style={[styles.swapBtn, { borderColor: theme.inputBorder },
+                !isSwapped && { backgroundColor: colors.primary, borderColor: colors.primary }]}
               onPress={() => onSetSwap(-1)}
               disabled={!isSwapped}
             >
-              <Text style={[styles.swapBtnText, !isSwapped && { color: "#fff" }]}>
+              <Text style={[styles.swapBtnText, { color: theme.textMuted }, !isSwapped && { color: "#fff" }]}>
                 {!isSwapped ? "✓ Currently active" : "↩ Use original"}
               </Text>
             </TouchableOpacity>
@@ -460,23 +444,25 @@ function ExerciseCard({
           {ex.vars.map((v, vi) => {
             const isSel = isSwapped && swapIdx === vi;
             return (
-              <View key={vi} style={[styles.varItem, isSel && styles.varItemActive]}>
+              <View key={vi} style={[styles.varItem, { backgroundColor: theme.cardAlt, borderColor: theme.cardBorder },
+                isSel && { backgroundColor: theme.inputFilled, borderColor: theme.inputFilledBorder }]}>
                 <View style={styles.varRow}>
-                  <View style={[styles.varNum, isSel && { backgroundColor: colors.primary }]}>
-                    <Text style={[styles.varNumText, isSel && { color: "#fff" }]}>{vi + 1}</Text>
+                  <View style={[styles.varNum, { backgroundColor: theme.input }, isSel && { backgroundColor: colors.primary }]}>
+                    <Text style={[styles.varNumText, { color: theme.textFaint }, isSel && { color: "#fff" }]}>{vi + 1}</Text>
                   </View>
-                  <Text style={styles.varName}>{v.name}</Text>
-                  <View style={styles.varEquip}>
-                    <Text style={styles.varEquipText}>{v.equip}</Text>
+                  <Text style={[styles.varName, { color: theme.textMuted }]}>{v.name}</Text>
+                  <View style={[styles.varEquip, { backgroundColor: theme.cardBorder }]}>
+                    <Text style={[styles.varEquipText, { color: theme.textFaint }]}>{v.equip}</Text>
                   </View>
                 </View>
-                <Text style={styles.varDesc}>{v.desc}</Text>
+                <Text style={[styles.varDesc, { color: theme.textMuted }]}>{v.desc}</Text>
                 <TouchableOpacity
-                  style={[styles.swapBtn, isSel && { backgroundColor: colors.primary, borderColor: colors.primary }]}
+                  style={[styles.swapBtn, { borderColor: theme.inputBorder },
+                    isSel && { backgroundColor: colors.primary, borderColor: colors.primary }]}
                   onPress={() => onSetSwap(vi)}
                   disabled={isSel}
                 >
-                  <Text style={[styles.swapBtnText, isSel && { color: "#fff" }]}>
+                  <Text style={[styles.swapBtnText, { color: theme.textMuted }, isSel && { color: "#fff" }]}>
                     {isSel ? "✓ Currently active" : "↔ Use this exercise"}
                   </Text>
                 </TouchableOpacity>
@@ -490,42 +476,38 @@ function ExerciseCard({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#111" },
+  container: { flex: 1 },
   scroll: { flex: 1 },
-  errorContainer: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#111" },
-  errorText: { color: "#fff", fontSize: 16 },
+  errorContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
+  errorText: { fontSize: 16 },
   dayHeader: { padding: 18, paddingBottom: 14 },
   dayTitle: { fontSize: 18, fontWeight: "800", marginBottom: 4 },
-  daySub: { fontSize: 12, color: "#666", marginBottom: 10 },
+  daySub: { fontSize: 12, marginBottom: 10 },
   tagsRow: { flexDirection: "row" as const },
   muscleTag: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 9, marginRight: 6 },
   muscleTagText: { fontSize: 10, fontWeight: "700" },
   summaryBar: {
     flexDirection: "row",
-    backgroundColor: "#1a1a1a",
     borderBottomWidth: 1,
-    borderBottomColor: "#222",
     paddingVertical: 14,
     paddingHorizontal: 18,
     gap: 28,
   },
   summaryItem: { alignItems: "center" },
   summaryVal: { fontSize: 22, fontWeight: "800" },
-  summaryLabel: { fontSize: 9, color: "#555", fontWeight: "700", letterSpacing: 0.5, marginTop: 2 },
+  summaryLabel: { fontSize: 9, fontWeight: "700", letterSpacing: 0.5, marginTop: 2 },
   exCard: {
-    backgroundColor: "#1a1a1a",
     borderRadius: 14,
     marginHorizontal: 14,
     marginTop: 14,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#2a2a2a",
   },
   exCardHeader: { flexDirection: "row", alignItems: "center", gap: 10, padding: 14 },
   exNum: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   exNumText: { fontSize: 11, fontWeight: "800", color: "#fff" },
   exHeaderMain: { flex: 1 },
-  exName: { fontSize: 14, fontWeight: "800", color: "#fff", marginBottom: 4 },
+  exName: { fontSize: 14, fontWeight: "800", marginBottom: 4 },
   exBadges: { flexDirection: "row", gap: 5 },
   badge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
   badgeCompound: { backgroundColor: "#1a2e4a" },
@@ -537,99 +519,45 @@ const styles = StyleSheet.create({
   swappedBadgeText: { fontSize: 9, fontWeight: "800", color: "#d97706" },
   exSetsReps: { alignItems: "flex-end" },
   exSR: { fontSize: 16, fontWeight: "800" },
-  exSRLabel: { fontSize: 9, color: "#555", marginTop: 1 },
-  cardTabs: {
-    flexDirection: "row",
-    borderTopWidth: 1,
-    borderTopColor: "#252525",
-    borderBottomWidth: 1,
-    borderBottomColor: "#252525",
-  },
+  exSRLabel: { fontSize: 9, marginTop: 1 },
+  cardTabs: { flexDirection: "row", borderTopWidth: 1, borderBottomWidth: 1 },
   cardTab: { flex: 1, paddingVertical: 10, alignItems: "center" },
-  cardTabActive: { borderBottomWidth: 2, borderBottomColor: "#fff" },
-  cardTabText: { fontSize: 10, fontWeight: "700", color: "#555" },
+  cardTabText: { fontSize: 10, fontWeight: "700" },
   cardPane: { padding: 14 },
-  exDetail: { fontSize: 13, color: "#aaa", lineHeight: 20, marginBottom: 10 },
-  resetBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#333",
-    alignSelf: "flex-start",
-  },
-  resetBtnText: { fontSize: 12, color: "#888" },
+  exDetail: { fontSize: 13, lineHeight: 20, marginBottom: 10 },
+  resetBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, alignSelf: "flex-start" },
+  resetBtnText: { fontSize: 12 },
   tableHeader: { flexDirection: "row", marginBottom: 8, paddingHorizontal: 2 },
-  thCell: { flex: 1, fontSize: 9, fontWeight: "800", color: "#555", letterSpacing: 0.5, textAlign: "center" },
+  thCell: { flex: 1, fontSize: 9, fontWeight: "800", letterSpacing: 0.5, textAlign: "center" },
   tableRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 },
-  setLabel: { width: 46, fontSize: 11, color: "#555", fontWeight: "700" },
+  setLabel: { width: 46, fontSize: 11, fontWeight: "700" },
   setInput: {
     flex: 1,
-    backgroundColor: "#222",
     borderWidth: 1,
-    borderColor: "#333",
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 8,
     fontSize: 15,
     fontWeight: "700",
-    color: "#fff",
     textAlign: "center",
   },
-  setInputFilled: { backgroundColor: "#0f2a18", borderColor: "#22c55e" },
   prevCell: { alignItems: "center" },
-  prevText: { fontSize: 10, color: "#555", textAlign: "center" },
-  prevEmpty: { fontSize: 12, color: "#444", textAlign: "center" },
+  prevText: { fontSize: 10, textAlign: "center" },
+  prevEmpty: { fontSize: 12, textAlign: "center" },
   arrowText: { fontSize: 11, fontWeight: "800", textAlign: "center" },
-  saveBtn: {
-    width: "100%",
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 12,
-  },
+  saveBtn: { width: "100%", paddingVertical: 12, borderRadius: 10, alignItems: "center", marginTop: 12 },
   saveBtnText: { fontSize: 13, fontWeight: "800", color: "#fff" },
-  varNote: { fontSize: 11, color: "#666", marginBottom: 12, lineHeight: 17 },
-  varItem: {
-    backgroundColor: "#222",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#2a2a2a",
-  },
-  varItemActive: { backgroundColor: "#0f2a18", borderColor: "#22c55e" },
+  varNote: { fontSize: 11, marginBottom: 12, lineHeight: 17 },
+  varItem: { borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 1 },
   varRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 6 },
-  varNum: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "#333",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  varNumText: { fontSize: 10, fontWeight: "800", color: "#888" },
-  varName: { flex: 1, fontSize: 13, fontWeight: "700", color: "#ddd" },
-  varEquip: { backgroundColor: "#2a2a2a", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5 },
-  varEquipText: { fontSize: 9, fontWeight: "700", color: "#888" },
-  varDesc: { fontSize: 11, color: "#777", lineHeight: 17, marginBottom: 10 },
-  swapBtn: {
-    width: "100%",
-    paddingVertical: 9,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: "#444",
-    alignItems: "center",
-  },
-  swapBtnText: { fontSize: 11, fontWeight: "800", color: "#aaa" },
-  tipBox: {
-    marginHorizontal: 14,
-    marginTop: 16,
-    backgroundColor: "#1a1a1a",
-    borderLeftWidth: 3,
-    borderLeftColor: "#333",
-    borderRadius: 8,
-    padding: 12,
-  },
-  tipText: { fontSize: 12, color: "#777", lineHeight: 18 },
+  varNum: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  varNumText: { fontSize: 10, fontWeight: "800" },
+  varName: { flex: 1, fontSize: 13, fontWeight: "700" },
+  varEquip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 5 },
+  varEquipText: { fontSize: 9, fontWeight: "700" },
+  varDesc: { fontSize: 11, lineHeight: 17, marginBottom: 10 },
+  swapBtn: { width: "100%", paddingVertical: 9, borderRadius: 8, borderWidth: 1.5, alignItems: "center" },
+  swapBtnText: { fontSize: 11, fontWeight: "800" },
+  tipBox: { marginHorizontal: 14, marginTop: 16, borderLeftWidth: 3, borderRadius: 8, padding: 12 },
+  tipText: { fontSize: 12, lineHeight: 18 },
 });

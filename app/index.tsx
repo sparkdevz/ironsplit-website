@@ -8,6 +8,7 @@ import {
   Platform,
   Alert,
 } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,12 +19,12 @@ import AdBanner from "@/components/AdBanner";
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { week, setWeek, unit, setUnit, clearWeek, getSessionData } = useWorkout();
+  const { week, setWeek, unit, setUnit, clearWeek, getSessionData, theme, colorScheme, toggleColorScheme } = useWorkout();
   const [showWeekPicker, setShowWeekPicker] = useState(false);
-  const [showUnitPicker, setShowUnitPicker] = useState(false);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+  const isDark = colorScheme === "dark";
 
   function getDayProgress(dayId: string): { logged: number; total: number } {
     if (!(dayId in DAYS)) return { logged: 0, total: 0 };
@@ -33,9 +34,7 @@ export default function HomeScreen() {
     day.exercises.forEach((ex, i) => {
       total += ex.sets;
       const data = getSessionData(dayId, i);
-      data.forEach((s) => {
-        if (s.weight || s.reps) logged++;
-      });
+      data.forEach((s) => { if (s.weight || s.reps) logged++; });
     });
     return { logged, total };
   }
@@ -54,66 +53,59 @@ export default function HomeScreen() {
   const workoutDays = SCHEDULE.filter((d) => !d.isRest);
 
   return (
-    <View style={[styles.container, { paddingTop: topPad, paddingBottom: bottomPad }]}>
+    <View style={[styles.container, { paddingTop: topPad, paddingBottom: bottomPad, backgroundColor: theme.bg }]}>
+      <StatusBar style={theme.statusBar} />
+
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: theme.separator, borderBottomWidth: 1 }]}>
         <View>
-          <Text style={styles.headerTitle}>Split-4</Text>
-          <Text style={styles.headerSub}>Upper/Lower Program</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Split-4</Text>
+          <Text style={[styles.headerSub, { color: theme.textFaint }]}>Upper/Lower Program</Text>
         </View>
         <View style={styles.headerActions}>
+          {/* Theme toggle */}
           <TouchableOpacity
-            style={styles.unitToggle}
-            onPress={() => setShowUnitPicker(!showUnitPicker)}
+            style={[styles.themeToggle, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}
+            onPress={toggleColorScheme}
           >
-            <Text style={[styles.unitBtn, unit === "kg" && styles.unitActive]}>kg</Text>
-            <Text style={[styles.unitBtn, unit === "lbs" && styles.unitActive]}>lbs</Text>
+            <Text style={styles.themeIcon}>{isDark ? "☀️" : "🌙"}</Text>
           </TouchableOpacity>
+          {/* Unit toggle */}
+          <View style={[styles.unitToggle, { borderColor: theme.cardBorder }]}>
+            <TouchableOpacity
+              style={[styles.unitBtn, unit === "kg" && { backgroundColor: theme.text }]}
+              onPress={() => setUnit("kg")}
+            >
+              <Text style={[styles.unitBtnText, { color: unit === "kg" ? theme.bg : theme.textFaint }]}>kg</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.unitBtn, unit === "lbs" && { backgroundColor: theme.text }]}
+              onPress={() => setUnit("lbs")}
+            >
+              <Text style={[styles.unitBtnText, { color: unit === "lbs" ? theme.bg : theme.textFaint }]}>lbs</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
-      {/* Unit picker dropdown */}
-      {showUnitPicker && (
-        <View style={styles.dropdown}>
-          {(["kg", "lbs"] as const).map((u) => (
-            <TouchableOpacity
-              key={u}
-              style={[styles.dropdownItem, unit === u && styles.dropdownItemActive]}
-              onPress={() => { setUnit(u); setShowUnitPicker(false); }}
-            >
-              <Text style={[styles.dropdownText, unit === u && styles.dropdownTextActive]}>{u}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: bottomPad + 24 }}
+        contentContainerStyle={{ paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Week selector */}
         <View style={styles.weekSection}>
-          <Text style={styles.sectionLabel}>CURRENT WEEK</Text>
+          <Text style={[styles.sectionLabel, { color: theme.textFaint }]}>CURRENT WEEK</Text>
           <View style={styles.weekRow}>
-            <TouchableOpacity
-              style={styles.weekArrow}
-              onPress={() => week > 1 && setWeek(week - 1)}
-            >
-              <Ionicons name="chevron-back" size={20} color={week > 1 ? "#fff" : "#555"} />
+            <TouchableOpacity style={styles.weekArrow} onPress={() => week > 1 && setWeek(week - 1)}>
+              <Ionicons name="chevron-back" size={20} color={week > 1 ? theme.text : theme.textFaint} />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.weekBadge}
-              onPress={() => setShowWeekPicker(!showWeekPicker)}
-            >
-              <Text style={styles.weekNumber}>Week {week}</Text>
-              <Text style={styles.weekOf}>of 12</Text>
+            <TouchableOpacity style={styles.weekBadge} onPress={() => setShowWeekPicker(!showWeekPicker)}>
+              <Text style={[styles.weekNumber, { color: theme.text }]}>Week {week}</Text>
+              <Text style={[styles.weekOf, { color: theme.textFaint }]}>of 12</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.weekArrow}
-              onPress={() => week < 12 && setWeek(week + 1)}
-            >
-              <Ionicons name="chevron-forward" size={20} color={week < 12 ? "#fff" : "#555"} />
+            <TouchableOpacity style={styles.weekArrow} onPress={() => week < 12 && setWeek(week + 1)}>
+              <Ionicons name="chevron-forward" size={20} color={week < 12 ? theme.text : theme.textFaint} />
             </TouchableOpacity>
           </View>
 
@@ -122,10 +114,10 @@ export default function HomeScreen() {
               {Array.from({ length: 12 }, (_, i) => i + 1).map((w) => (
                 <TouchableOpacity
                   key={w}
-                  style={[styles.weekPickerItem, week === w && styles.weekPickerActive]}
+                  style={[styles.weekPickerItem, { backgroundColor: theme.cardAlt }, week === w && { backgroundColor: theme.text }]}
                   onPress={() => { setWeek(w); setShowWeekPicker(false); }}
                 >
-                  <Text style={[styles.weekPickerText, week === w && styles.weekPickerTextActive]}>
+                  <Text style={[styles.weekPickerText, { color: theme.textMuted }, week === w && { color: theme.bg }]}>
                     W{w}
                   </Text>
                 </TouchableOpacity>
@@ -135,7 +127,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Workout day cards */}
-        <Text style={styles.sectionLabel}>WORKOUTS</Text>
+        <Text style={[styles.sectionLabel, { color: theme.textFaint }]}>WORKOUTS</Text>
         <View style={styles.dayCards}>
           {workoutDays.map((day) => {
             const colors = DAY_COLORS[day.id as DayKey];
@@ -146,23 +138,21 @@ export default function HomeScreen() {
             return (
               <TouchableOpacity
                 key={day.id}
-                style={[styles.dayCard, { backgroundColor: colors.light }]}
+                style={[styles.dayCard, { backgroundColor: colors.light, borderColor: theme.cardBorder, borderWidth: isDark ? 0 : 1 }]}
                 onPress={() => router.push(`/workout/${day.id}`)}
               >
                 <View style={[styles.dayCardAccent, { backgroundColor: colors.primary }]} />
                 <View style={styles.dayCardContent}>
                   <Text style={[styles.dayCardLabel, { color: colors.primary }]}>{day.label}</Text>
-                  <Text style={styles.dayCardTitle}>{dayData.dayLabel}</Text>
-                  <Text style={styles.dayCardMuscles}>
+                  <Text style={[styles.dayCardTitle, { color: isDark ? "#1a1a1a" : "#111" }]}>{dayData.dayLabel}</Text>
+                  <Text style={[styles.dayCardMuscles, { color: isDark ? "#555" : "#888" }]}>
                     {dayData.muscles.slice(0, 3).join(" · ")}
                   </Text>
                   <View style={styles.dayCardFooter}>
-                    <Text style={styles.dayCardExCount}>{dayData.exercises.length} exercises</Text>
-                    <Text style={styles.dayCardProgress}>
-                      {prog.logged}/{prog.total} sets
-                    </Text>
+                    <Text style={[styles.dayCardExCount, { color: isDark ? "#777" : "#999" }]}>{dayData.exercises.length} exercises</Text>
+                    <Text style={[styles.dayCardProgress, { color: isDark ? "#777" : "#999" }]}>{prog.logged}/{prog.total} sets</Text>
                   </View>
-                  <View style={styles.progressBarSmall}>
+                  <View style={[styles.progressBarSmall, { backgroundColor: isDark ? "rgba(0,0,0,0.15)" : "rgba(0,0,0,0.08)" }]}>
                     <View style={[styles.progressFillSmall, { width: `${pct * 100}%` as any, backgroundColor: colors.primary }]} />
                   </View>
                 </View>
@@ -173,7 +163,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Full Schedule */}
-        <Text style={styles.sectionLabel}>WEEKLY SCHEDULE</Text>
+        <Text style={[styles.sectionLabel, { color: theme.textFaint }]}>WEEKLY SCHEDULE</Text>
         <View style={styles.scheduleGrid}>
           {SCHEDULE.map((day) => {
             const isWorkout = !day.isRest;
@@ -186,35 +176,27 @@ export default function HomeScreen() {
                 key={day.id}
                 style={[
                   styles.scheduleCard,
-                  isWorkout ? { borderLeftColor: colors!.primary, borderLeftWidth: 4 } : styles.restCard,
+                  { backgroundColor: theme.restCard, borderLeftColor: isWorkout ? colors!.primary : theme.cardBorder, borderLeftWidth: 4 },
                 ]}
-                onPress={() => {
-                  if (!day.isRest) {
-                    router.push(`/workout/${day.id}`);
-                  }
-                }}
+                onPress={() => { if (!day.isRest) router.push(`/workout/${day.id}`); }}
                 disabled={day.isRest}
               >
                 <View style={styles.scheduleCardLeft}>
-                  <Text style={[styles.scheduleDay, isWorkout && { color: colors!.primary }]}>
-                    {day.label}
-                  </Text>
-                  <Text style={styles.scheduleSub}>{day.sub}</Text>
+                  <Text style={[styles.scheduleDay, { color: isWorkout ? colors!.primary : theme.text }]}>{day.label}</Text>
+                  <Text style={[styles.scheduleSub, { color: theme.textFaint }]}>{day.sub}</Text>
                 </View>
                 {isWorkout && prog ? (
                   <View style={styles.scheduleRight}>
-                    <View style={styles.progressBar}>
+                    <View style={[styles.progressBar, { backgroundColor: theme.cardBorder }]}>
                       <View style={[styles.progressFill, { width: `${pct * 100}%` as any, backgroundColor: colors!.primary }]} />
                     </View>
-                    <Text style={styles.progressText}>
-                      {prog.logged}/{prog.total} sets
-                    </Text>
+                    <Text style={[styles.progressText, { color: theme.textFaint }]}>{prog.logged}/{prog.total} sets</Text>
                   </View>
                 ) : (
                   <Text style={styles.restText}>{(day as any).restIcon || "💤"}</Text>
                 )}
                 {isWorkout && (
-                  <Ionicons name="chevron-forward" size={16} color="#555" style={{ marginLeft: 4 }} />
+                  <Ionicons name="chevron-forward" size={16} color={theme.textFaint} style={{ marginLeft: 4 }} />
                 )}
               </TouchableOpacity>
             );
@@ -222,7 +204,10 @@ export default function HomeScreen() {
         </View>
 
         {/* Clear week */}
-        <TouchableOpacity style={styles.clearBtn} onPress={handleClearWeek}>
+        <TouchableOpacity
+          style={[styles.clearBtn, { backgroundColor: theme.clearBtnBg, borderColor: theme.clearBtnBorder }]}
+          onPress={handleClearWeek}
+        >
           <Ionicons name="trash-outline" size={16} color="#dc2626" />
           <Text style={styles.clearBtnText}>Clear Week {week} Data</Text>
         </TouchableOpacity>
@@ -233,7 +218,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#111" },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -241,38 +226,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 14,
   },
-  headerTitle: { fontSize: 22, fontWeight: "800", color: "#fff", letterSpacing: -0.5 },
-  headerSub: { fontSize: 12, color: "#888", marginTop: 2 },
+  headerTitle: { fontSize: 22, fontWeight: "800", letterSpacing: -0.5 },
+  headerSub: { fontSize: 12, marginTop: 2 },
   headerActions: { flexDirection: "row", gap: 8, alignItems: "center" },
+  themeToggle: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  themeIcon: { fontSize: 16 },
   unitToggle: {
     flexDirection: "row",
     borderWidth: 1,
-    borderColor: "#333",
     borderRadius: 8,
     overflow: "hidden",
   },
-  unitBtn: { paddingHorizontal: 12, paddingVertical: 7, fontSize: 12, fontWeight: "700", color: "#666" },
-  unitActive: { backgroundColor: "#fff", color: "#111" },
-  dropdown: {
-    position: "absolute",
-    top: 72,
-    right: 18,
-    backgroundColor: "#222",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#333",
-    zIndex: 999,
-    overflow: "hidden",
-  },
-  dropdownItem: { paddingHorizontal: 20, paddingVertical: 12 },
-  dropdownItemActive: { backgroundColor: "#333" },
-  dropdownText: { color: "#aaa", fontSize: 14, fontWeight: "600" },
-  dropdownTextActive: { color: "#fff" },
+  unitBtn: { paddingHorizontal: 12, paddingVertical: 7 },
+  unitBtnText: { fontSize: 12, fontWeight: "700" },
   scroll: { flex: 1 },
   sectionLabel: {
     fontSize: 10,
     fontWeight: "800",
-    color: "#555",
     letterSpacing: 1,
     paddingHorizontal: 18,
     marginTop: 20,
@@ -282,40 +259,25 @@ const styles = StyleSheet.create({
   weekRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 16 },
   weekArrow: { padding: 8 },
   weekBadge: { alignItems: "center" },
-  weekNumber: { fontSize: 28, fontWeight: "800", color: "#fff" },
-  weekOf: { fontSize: 12, color: "#666", marginTop: -2 },
+  weekNumber: { fontSize: 28, fontWeight: "800" },
+  weekOf: { fontSize: 12, marginTop: -2 },
   weekPicker: { marginTop: 12, marginBottom: 4 },
-  weekPickerItem: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: "#222",
-    marginRight: 8,
-  },
-  weekPickerActive: { backgroundColor: "#fff" },
-  weekPickerText: { fontSize: 13, fontWeight: "700", color: "#888" },
-  weekPickerTextActive: { color: "#111" },
+  weekPickerItem: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, marginRight: 8 },
+  weekPickerText: { fontSize: 13, fontWeight: "700" },
   scheduleGrid: { paddingHorizontal: 18, gap: 8 },
   scheduleCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1e1e1e",
     borderRadius: 12,
     padding: 14,
-    borderLeftWidth: 4,
-    borderLeftColor: "transparent",
-  },
-  restCard: {
-    borderLeftWidth: 4,
-    borderLeftColor: "#2a2a2a",
   },
   scheduleCardLeft: { flex: 1 },
-  scheduleDay: { fontSize: 14, fontWeight: "700", color: "#fff" },
-  scheduleSub: { fontSize: 12, color: "#666", marginTop: 2 },
+  scheduleDay: { fontSize: 14, fontWeight: "700" },
+  scheduleSub: { fontSize: 12, marginTop: 2 },
   scheduleRight: { alignItems: "flex-end", gap: 4, flex: 1 },
-  progressBar: { width: 80, height: 4, backgroundColor: "#333", borderRadius: 2, overflow: "hidden" },
+  progressBar: { width: 80, height: 4, borderRadius: 2, overflow: "hidden" },
   progressFill: { height: "100%", borderRadius: 2 },
-  progressText: { fontSize: 10, color: "#666" },
+  progressText: { fontSize: 10 },
   restText: { fontSize: 20 },
   dayCards: { paddingHorizontal: 18, gap: 12 },
   dayCard: {
@@ -328,12 +290,12 @@ const styles = StyleSheet.create({
   dayCardAccent: { width: 5, alignSelf: "stretch" },
   dayCardContent: { flex: 1, padding: 16 },
   dayCardLabel: { fontSize: 11, fontWeight: "800", marginBottom: 4, letterSpacing: 0.5 },
-  dayCardTitle: { fontSize: 15, fontWeight: "700", color: "#1a1a1a", marginBottom: 4 },
-  dayCardMuscles: { fontSize: 12, color: "#666", marginBottom: 10 },
+  dayCardTitle: { fontSize: 15, fontWeight: "700", marginBottom: 4 },
+  dayCardMuscles: { fontSize: 12, marginBottom: 10 },
   dayCardFooter: { flexDirection: "row", justifyContent: "space-between", marginBottom: 8 },
-  dayCardExCount: { fontSize: 11, color: "#888" },
-  dayCardProgress: { fontSize: 11, color: "#888" },
-  progressBarSmall: { height: 3, backgroundColor: "rgba(0,0,0,0.1)", borderRadius: 2, overflow: "hidden" },
+  dayCardExCount: { fontSize: 11 },
+  dayCardProgress: { fontSize: 11 },
+  progressBarSmall: { height: 3, borderRadius: 2, overflow: "hidden" },
   progressFillSmall: { height: "100%", borderRadius: 2 },
   dayCardArrow: { marginRight: 14 },
   clearBtn: {
@@ -346,8 +308,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#3a1a1a",
-    backgroundColor: "#1a0a0a",
   },
   clearBtnText: { color: "#dc2626", fontSize: 13, fontWeight: "700" },
 });
