@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useWorkout } from "@/context/WorkoutContext";
 import { DAYS, DAY_COLORS, SCHEDULE, DayKey } from "@/constants/workoutData";
 import AdBanner from "@/components/AdBanner";
+import Logo from "@/components/Logo";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -57,34 +58,34 @@ export default function HomeScreen() {
       <StatusBar style={theme.statusBar} />
 
       {/* Header */}
-      <View style={[styles.header, { borderBottomColor: theme.separator, borderBottomWidth: 1 }]}>
-        <View>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>IronSplit</Text>
-          <Text style={[styles.headerSub, { color: theme.textFaint }]}>Upper/Lower Program</Text>
+      <View style={[styles.header, { borderBottomColor: theme.separator, borderBottomWidth: 1, backgroundColor: theme.headerBg }]}>
+        {/* Left — theme toggle */}
+        <TouchableOpacity
+          style={[styles.themeToggle, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}
+          onPress={toggleColorScheme}
+        >
+          <Text style={styles.themeIcon}>{isDark ? "☀️" : "🌙"}</Text>
+        </TouchableOpacity>
+
+        {/* Center — logo */}
+        <View style={styles.headerCenter}>
+          <Logo theme={theme} size="md" />
         </View>
-        <View style={styles.headerActions}>
-          {/* Theme toggle */}
+
+        {/* Right — unit toggle */}
+        <View style={[styles.unitToggle, { borderColor: theme.cardBorder }]}>
           <TouchableOpacity
-            style={[styles.themeToggle, { backgroundColor: theme.card, borderColor: theme.cardBorder }]}
-            onPress={toggleColorScheme}
+            style={[styles.unitBtn, unit === "kg" && { backgroundColor: theme.text }]}
+            onPress={() => setUnit("kg")}
           >
-            <Text style={styles.themeIcon}>{isDark ? "☀️" : "🌙"}</Text>
+            <Text style={[styles.unitBtnText, { color: unit === "kg" ? theme.bg : theme.textFaint }]}>kg</Text>
           </TouchableOpacity>
-          {/* Unit toggle */}
-          <View style={[styles.unitToggle, { borderColor: theme.cardBorder }]}>
-            <TouchableOpacity
-              style={[styles.unitBtn, unit === "kg" && { backgroundColor: theme.text }]}
-              onPress={() => setUnit("kg")}
-            >
-              <Text style={[styles.unitBtnText, { color: unit === "kg" ? theme.bg : theme.textFaint }]}>kg</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.unitBtn, unit === "lbs" && { backgroundColor: theme.text }]}
-              onPress={() => setUnit("lbs")}
-            >
-              <Text style={[styles.unitBtnText, { color: unit === "lbs" ? theme.bg : theme.textFaint }]}>lbs</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={[styles.unitBtn, unit === "lbs" && { backgroundColor: theme.text }]}
+            onPress={() => setUnit("lbs")}
+          >
+            <Text style={[styles.unitBtnText, { color: unit === "lbs" ? theme.bg : theme.textFaint }]}>lbs</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -223,12 +224,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
-  headerTitle: { fontSize: 22, fontWeight: "800", letterSpacing: -0.5 },
-  headerSub: { fontSize: 12, marginTop: 2 },
-  headerActions: { flexDirection: "row", gap: 8, alignItems: "center" },
+  headerCenter: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   themeToggle: {
     width: 36,
     height: 36,
