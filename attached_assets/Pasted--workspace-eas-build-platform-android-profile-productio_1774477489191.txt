@@ -1,0 +1,44 @@
+~/workspace$ eas build --platform android --profile production
+
+⚠️ Detected that your app uses Expo Go for development, this is not recommended when building production apps.
+Learn more: https://expo.fyi/why-not-build-expo-go-for-production
+To suppress this warning, set EAS_BUILD_NO_EXPO_GO_WARNING=true.
+
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
+
+
+
+✔ Using remote Android credentials (Expo server)
+✔ Generate a new Android Keystore? … yes
+Detected that you do not have keytool installed locally.
+✔ Generating keystore in the cloud...
+✔ Created keystore
+
+Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
+Failed to upload the project tarball to EAS Build
+
+Reason: EACCES: permission denied, rmdir '/tmp/runner/eas-cli-nodejs/14f6fd0f-ebe3-4ed4-bede-a3e8c9b8abd6-shallow-clone/.cache/dotslash/cb/2a59c5919ce27ef30b55119edf89e556e015ef/React Native DevTools-linux-x64'
+    Error: build command failed.
+⠋ Compressingeas build --platform android --profile productionndroid --profile production
+
+⚠️ Detected that your app uses Expo Go for development, this is not recommended when building production apps.
+Learn more: https://expo.fyi/why-not-build-expo-go-for-production
+To suppress this warning, set EAS_BUILD_NO_EXPO_GO_WARNING=true.
+
+Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
+No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
+
+
+
+✔ Using remote Android credentials (Expo server)
+✔ Using Keystore from configuration: Build Credentials UJw4dtGlpH (default)
+
+Compressing project files and uploading to EAS Build. Learn more: https://expo.fyi/eas-build-archive
+Failed to upload the project tarball to EAS Build
+
+Reason: EACCES: permission denied, rmdir '/tmp/runner/eas-cli-nodejs/804f1ea5-31dd-4a1e-ae1c-1ea74ee3e496-shallow-clone/.cache/dotslash/cb/2a59c5919ce27ef30b55119edf89e556e015ef/React Native DevTools-linux-x64'
+    Error: build command failed.
+⠋ Compressing project files~/workspace$ ^C
+~/workspace$ ^C
+~/workspace$ 
