@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Workout Tracker",
-    "slug": "workout-tracker",
+    "name": "Split-4",
+    "slug": "split-4",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "workout",
+    "scheme": "split4",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash-icon.png",

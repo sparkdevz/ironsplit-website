@@ -57,7 +57,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>🏋️ 4-Day Split</Text>
+          <Text style={styles.headerTitle}>Split-4</Text>
           <Text style={styles.headerSub}>Upper/Lower Program</Text>
         </View>
         <View style={styles.headerActions}>
