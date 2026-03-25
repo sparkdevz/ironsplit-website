@@ -9,13 +9,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-  ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DAYS, DAY_COLORS, DayKey, Exercise } from "@/constants/workoutData";
 import { useWorkout, SetData } from "@/context/WorkoutContext";
-import { useExerciseImage } from "@/hooks/useExerciseImage";
+import { getExerciseImageUri } from "@/hooks/useExerciseImage";
 
 type TabType = "info" | "track" | "variations";
 
@@ -27,18 +26,10 @@ interface ExCardState {
 
 // ── Exercise image sub-component ───────────────────────────────────────────
 function ExerciseImage({ name }: { name: string }) {
-  const { uri, status } = useExerciseImage(name);
+  const uri = getExerciseImageUri(name);
   const [imgError, setImgError] = useState(false);
 
-  if (status === "loading") {
-    return (
-      <View style={imgStyles.placeholder}>
-        <ActivityIndicator color="#444" size="small" />
-      </View>
-    );
-  }
-
-  if (status === "error" || imgError || !uri) {
+  if (!uri || imgError) {
     return (
       <View style={imgStyles.placeholder}>
         <Text style={imgStyles.noImg}>No image available</Text>
