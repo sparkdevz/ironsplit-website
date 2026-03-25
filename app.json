@@ -13,13 +13,17 @@
       "backgroundColor": "#1a1a1a"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ironsplit.app"
     },
     "android": {
+      "package": "com.ironsplit.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundColor": "#1a1a1a"
-      }
+      },
+      "permissions": []
     },
     "web": {
       "bundler": "metro",
