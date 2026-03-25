@@ -1,4 +1,4 @@
-# Split-4 — 4-Day Upper/Lower Workout Tracker (Mobile App)
+# IronSplit — 4-Day Upper/Lower Workout Tracker (Mobile App)
 
 ## Overview
 A React Native (Expo) mobile app converted from an HTML workout tracker. Features a 4-day upper/lower split workout plan with full exercise tracking, history comparison, exercise variation swapping, dark/light mode, and Google AdMob banner ads.

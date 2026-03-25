@@ -59,7 +59,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: theme.separator, borderBottomWidth: 1 }]}>
         <View>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Split-4</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>IronSplit</Text>
           <Text style={[styles.headerSub, { color: theme.textFaint }]}>Upper/Lower Program</Text>
         </View>
         <View style={styles.headerActions}>
