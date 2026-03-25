@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DAYS, DAY_COLORS, DayKey, Exercise } from "@/constants/workoutData";
 import { useWorkout, SetData } from "@/context/WorkoutContext";
 import { getExerciseImageUri } from "@/hooks/useExerciseImage";
+import AdBanner from "@/components/AdBanner";
 
 type TabType = "info" | "track" | "variations";
 
@@ -268,6 +269,7 @@ export default function WorkoutDayScreen() {
             <Text style={styles.tipText}>💡 {dayData.tip}</Text>
           </View>
         </ScrollView>
+        <AdBanner />
       </KeyboardAvoidingView>
     </>
   );

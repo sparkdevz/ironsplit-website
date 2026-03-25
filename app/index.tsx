@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useWorkout } from "@/context/WorkoutContext";
 import { DAYS, DAY_COLORS, SCHEDULE, DayKey } from "@/constants/workoutData";
+import AdBanner from "@/components/AdBanner";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -53,7 +54,7 @@ export default function HomeScreen() {
   const workoutDays = SCHEDULE.filter((d) => !d.isRest);
 
   return (
-    <View style={[styles.container, { paddingTop: topPad }]}>
+    <View style={[styles.container, { paddingTop: topPad, paddingBottom: bottomPad }]}>
       {/* Header */}
       <View style={styles.header}>
         <View>
@@ -226,6 +227,7 @@ export default function HomeScreen() {
           <Text style={styles.clearBtnText}>Clear Week {week} Data</Text>
         </TouchableOpacity>
       </ScrollView>
+      <AdBanner />
     </View>
   );
 }
