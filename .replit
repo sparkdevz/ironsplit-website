@@ -21,13 +21,13 @@ args = "Start Frontend"
 name = "Start Frontend"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx expo start --port 5000 --web"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx expo start --port 5000 --tunnel"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
