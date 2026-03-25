@@ -12,7 +12,7 @@ try {
   TestIds = admob.TestIds;
 } catch (_) {}
 
-const ANDROID_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111";
+const ANDROID_AD_UNIT_ID = "ca-app-pub-6293674677101068/1335864713";
 const IOS_AD_UNIT_ID = "ca-app-pub-3940256099942544/2934735716";
 
 const adUnitId =
