@@ -133,6 +133,44 @@ export default function HomeScreen() {
           )}
         </View>
 
+        {/* Workout day cards */}
+        <Text style={styles.sectionLabel}>WORKOUTS</Text>
+        <View style={styles.dayCards}>
+          {workoutDays.map((day) => {
+            const colors = DAY_COLORS[day.id as DayKey];
+            const dayData = DAYS[day.id as DayKey];
+            const prog = getDayProgress(day.id);
+            const pct = prog.total > 0 ? prog.logged / prog.total : 0;
+
+            return (
+              <TouchableOpacity
+                key={day.id}
+                style={[styles.dayCard, { backgroundColor: colors.light }]}
+                onPress={() => router.push(`/workout/${day.id}`)}
+              >
+                <View style={[styles.dayCardAccent, { backgroundColor: colors.primary }]} />
+                <View style={styles.dayCardContent}>
+                  <Text style={[styles.dayCardLabel, { color: colors.primary }]}>{day.label}</Text>
+                  <Text style={styles.dayCardTitle}>{dayData.dayLabel}</Text>
+                  <Text style={styles.dayCardMuscles}>
+                    {dayData.muscles.slice(0, 3).join(" · ")}
+                  </Text>
+                  <View style={styles.dayCardFooter}>
+                    <Text style={styles.dayCardExCount}>{dayData.exercises.length} exercises</Text>
+                    <Text style={styles.dayCardProgress}>
+                      {prog.logged}/{prog.total} sets
+                    </Text>
+                  </View>
+                  <View style={styles.progressBarSmall}>
+                    <View style={[styles.progressFillSmall, { width: `${pct * 100}%` as any, backgroundColor: colors.primary }]} />
+                  </View>
+                </View>
+                <Ionicons name="arrow-forward-circle" size={28} color={colors.primary} style={styles.dayCardArrow} />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         {/* Full Schedule */}
         <Text style={styles.sectionLabel}>WEEKLY SCHEDULE</Text>
         <View style={styles.scheduleGrid}>
@@ -177,44 +215,6 @@ export default function HomeScreen() {
                 {isWorkout && (
                   <Ionicons name="chevron-forward" size={16} color="#555" style={{ marginLeft: 4 }} />
                 )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Workout day cards */}
-        <Text style={styles.sectionLabel}>WORKOUTS</Text>
-        <View style={styles.dayCards}>
-          {workoutDays.map((day) => {
-            const colors = DAY_COLORS[day.id as DayKey];
-            const dayData = DAYS[day.id as DayKey];
-            const prog = getDayProgress(day.id);
-            const pct = prog.total > 0 ? prog.logged / prog.total : 0;
-
-            return (
-              <TouchableOpacity
-                key={day.id}
-                style={[styles.dayCard, { backgroundColor: colors.light }]}
-                onPress={() => router.push(`/workout/${day.id}`)}
-              >
-                <View style={[styles.dayCardAccent, { backgroundColor: colors.primary }]} />
-                <View style={styles.dayCardContent}>
-                  <Text style={[styles.dayCardLabel, { color: colors.primary }]}>{day.label}</Text>
-                  <Text style={styles.dayCardTitle}>{dayData.dayLabel}</Text>
-                  <Text style={styles.dayCardMuscles}>
-                    {dayData.muscles.slice(0, 3).join(" · ")}
-                  </Text>
-                  <View style={styles.dayCardFooter}>
-                    <Text style={styles.dayCardExCount}>{dayData.exercises.length} exercises</Text>
-                    <Text style={styles.dayCardProgress}>
-                      {prog.logged}/{prog.total} sets
-                    </Text>
-                  </View>
-                  <View style={styles.progressBarSmall}>
-                    <View style={[styles.progressFillSmall, { width: `${pct * 100}%` as any, backgroundColor: colors.primary }]} />
-                  </View>
-                </View>
-                <Ionicons name="arrow-forward-circle" size={28} color={colors.primary} style={styles.dayCardArrow} />
               </TouchableOpacity>
             );
           })}
