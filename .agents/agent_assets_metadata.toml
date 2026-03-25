@@ -1,0 +1,20 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "wLMt6oqW6SGI3zaoz58vb"
+uri = "file://store-assets/icon-512.png"
+type = "image"
+title = "App Icon (512×512)"
+
+[[outputs]]
+id = "NVmBpkrsp7idMgZWLWKo1"
+uri = "file://store-assets/feature-graphic-1024x500.png"
+type = "image"
+title = "Feature Graphic (1024×500)"
+
+[[outputs]]
+id = "WGyUUe0tHiSAcMW9m8HEI"
+uri = "file://store-assets/store-listing.md"
+type = "text"
+title = "Store Listing — Descriptions & Tags"
