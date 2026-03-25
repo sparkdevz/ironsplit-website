@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,22 +8,77 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Alert,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 import { DAYS, DAY_COLORS, DayKey, Exercise } from "@/constants/workoutData";
 import { useWorkout, SetData } from "@/context/WorkoutContext";
+import { useExerciseImage } from "@/hooks/useExerciseImage";
 
 type TabType = "info" | "track" | "variations";
 
 interface ExCardState {
   activeTab: TabType;
-  swappedTo: number; // -1 = original
+  swappedTo: number;
   savedThisSession: boolean;
 }
 
+// ── Exercise image sub-component ───────────────────────────────────────────
+function ExerciseImage({ name }: { name: string }) {
+  const { uri, status } = useExerciseImage(name);
+  const [imgError, setImgError] = useState(false);
+
+  if (status === "loading") {
+    return (
+      <View style={imgStyles.placeholder}>
+        <ActivityIndicator color="#444" size="small" />
+      </View>
+    );
+  }
+
+  if (status === "error" || imgError || !uri) {
+    return (
+      <View style={imgStyles.placeholder}>
+        <Text style={imgStyles.noImg}>No image available</Text>
+      </View>
+    );
+  }
+
+  return (
+    <Image
+      source={{ uri }}
+      style={imgStyles.image}
+      resizeMode="contain"
+      onError={() => setImgError(true)}
+    />
+  );
+}
+
+const imgStyles = StyleSheet.create({
+  image: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    backgroundColor: "#222",
+    marginBottom: 14,
+  },
+  placeholder: {
+    width: "100%",
+    height: 120,
+    borderRadius: 10,
+    backgroundColor: "#1e1e1e",
+    borderWidth: 1,
+    borderColor: "#2a2a2a",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  noImg: { fontSize: 11, color: "#444" },
+});
+
+// ── Main screen ────────────────────────────────────────────────────────────
 export default function WorkoutDayScreen() {
   const { day } = useLocalSearchParams<{ day: string }>();
   const router = useRouter();
@@ -35,7 +90,7 @@ export default function WorkoutDayScreen() {
   const colors = DAY_COLORS[dayKey];
 
   const [cardStates, setCardStates] = useState<ExCardState[]>(() =>
-    dayData.exercises.map((_, i) => ({
+    dayData.exercises.map(() => ({
       activeTab: "info" as TabType,
       swappedTo: -1,
       savedThisSession: false,
@@ -46,7 +101,6 @@ export default function WorkoutDayScreen() {
     dayData.exercises.map(() => [])
   );
 
-  // Load swaps and session data on mount
   useEffect(() => {
     const newCardStates = dayData.exercises.map((_, i) => ({
       activeTab: "info" as TabType,
@@ -121,7 +175,6 @@ export default function WorkoutDayScreen() {
     return getSessionData(dayKey, exIndex, week - 1);
   }
 
-  // Compute total sets logged for summary
   const totalSets = dayData.exercises.reduce((a, ex) => a + ex.sets, 0);
   const loggedSets = inputData.reduce((a, sets) => {
     return a + sets.filter((s) => s.weight || s.reps).length;
@@ -147,7 +200,7 @@ export default function WorkoutDayScreen() {
         }}
       />
       <KeyboardAvoidingView
-        style={[styles.container]}
+        style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
@@ -190,7 +243,6 @@ export default function WorkoutDayScreen() {
             const state = cardStates[exIndex];
             const swapIdx = state?.swappedTo ?? -1;
             const isSwapped = swapIdx !== -1;
-            const activeEx = isSwapped ? ex.vars[swapIdx] : ex;
             const activeName = isSwapped ? ex.vars[swapIdx].name : ex.name;
             const activeDetail = isSwapped ? ex.vars[swapIdx].desc : ex.detail;
             const activeTab = state?.activeTab ?? "info";
@@ -198,190 +250,25 @@ export default function WorkoutDayScreen() {
             const currData = inputData[exIndex] ?? [];
 
             return (
-              <View key={exIndex} style={styles.exCard}>
-                {/* Card header */}
-                <View style={styles.exCardHeader}>
-                  <View style={[styles.exNum, { backgroundColor: colors.primary }]}>
-                    <Text style={styles.exNumText}>{exIndex + 1}</Text>
-                  </View>
-                  <View style={styles.exHeaderMain}>
-                    <Text style={styles.exName}>{activeName}</Text>
-                    <View style={styles.exBadges}>
-                      <View style={[styles.badge, ex.type === "compound" ? styles.badgeCompound : styles.badgeIsolation]}>
-                        <Text style={[styles.badgeText, ex.type === "compound" ? styles.badgeCompoundText : styles.badgeIsolationText]}>
-                          {ex.type}
-                        </Text>
-                      </View>
-                      {isSwapped && (
-                        <View style={styles.swappedBadge}>
-                          <Text style={styles.swappedBadgeText}>↔ swapped</Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                  <View style={styles.exSetsReps}>
-                    <Text style={[styles.exSR, { color: colors.primary }]}>{ex.sets}×{ex.reps}</Text>
-                    <Text style={styles.exSRLabel}>sets×reps</Text>
-                  </View>
-                </View>
-
-                {/* Card tabs */}
-                <View style={styles.cardTabs}>
-                  {(["info", "track", "variations"] as TabType[]).map((tab) => (
-                    <TouchableOpacity
-                      key={tab}
-                      style={[styles.cardTab, activeTab === tab && styles.cardTabActive]}
-                      onPress={() => setTab(exIndex, tab)}
-                    >
-                      <Text style={[styles.cardTabText, activeTab === tab && { color: colors.primary }]}>
-                        {tab === "info" ? "📋 Info" : tab === "track" ? "📊 Track" : "🔄 Variations"}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {/* Info pane */}
-                {activeTab === "info" && (
-                  <View style={styles.cardPane}>
-                    <Text style={styles.exDetail}>{activeDetail}</Text>
-                    {isSwapped && (
-                      <TouchableOpacity
-                        style={styles.resetBtn}
-                        onPress={() => setSwap(exIndex, -1)}
-                      >
-                        <Text style={styles.resetBtnText}>↩ Reset to original</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                )}
-
-                {/* Track pane */}
-                {activeTab === "track" && (
-                  <View style={styles.cardPane}>
-                    <View style={styles.tableHeader}>
-                      <Text style={[styles.thCell, { width: 46 }]}>SET</Text>
-                      <Text style={styles.thCell}>WEIGHT ({unit})</Text>
-                      <Text style={styles.thCell}>REPS DONE</Text>
-                      <Text style={[styles.thCell, { width: 70 }]}>vs PREV</Text>
-                    </View>
-                    {Array.from({ length: ex.sets }, (_, setIdx) => {
-                      const cur = currData[setIdx];
-                      const prev = prevData[setIdx];
-                      const hasWeight = !!(cur?.weight);
-                      const hasReps = !!(cur?.reps);
-                      let arrow = "";
-                      if (cur?.weight && prev?.weight) {
-                        const cw = parseFloat(cur.weight);
-                        const pw = parseFloat(prev.weight);
-                        if (cw > pw) arrow = "▲";
-                        else if (cw < pw) arrow = "▼";
-                        else arrow = "—";
-                      }
-                      const arrowColor = arrow === "▲" ? "#22c55e" : arrow === "▼" ? "#ef4444" : "#f59e0b";
-
-                      return (
-                        <View key={setIdx} style={styles.tableRow}>
-                          <Text style={styles.setLabel}>Set {setIdx + 1}</Text>
-                          <TextInput
-                            style={[styles.setInput, hasWeight && styles.setInputFilled]}
-                            value={cur?.weight ?? ""}
-                            onChangeText={(v) => updateInput(exIndex, setIdx, "weight", v)}
-                            keyboardType="decimal-pad"
-                            placeholder="—"
-                            placeholderTextColor="#555"
-                          />
-                          <TextInput
-                            style={[styles.setInput, hasReps && styles.setInputFilled]}
-                            value={cur?.reps ?? ""}
-                            onChangeText={(v) => updateInput(exIndex, setIdx, "reps", v)}
-                            keyboardType="decimal-pad"
-                            placeholder="—"
-                            placeholderTextColor="#555"
-                          />
-                          <View style={[styles.prevCell, { width: 70 }]}>
-                            {prev?.weight || prev?.reps ? (
-                              <>
-                                <Text style={styles.prevText}>{prev.weight || "?"}×{prev.reps || "?"}</Text>
-                                {arrow !== "" && (
-                                  <Text style={[styles.arrowText, { color: arrowColor }]}>{arrow}</Text>
-                                )}
-                              </>
-                            ) : (
-                              <Text style={styles.prevEmpty}>—</Text>
-                            )}
-                          </View>
-                        </View>
-                      );
-                    })}
-                    <TouchableOpacity
-                      style={[styles.saveBtn, { backgroundColor: colors.primary }]}
-                      onPress={() => saveSession(exIndex)}
-                    >
-                      <Text style={styles.saveBtnText}>
-                        {state?.savedThisSession ? "✓ Saved!" : "Save Session"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-
-                {/* Variations pane */}
-                {activeTab === "variations" && (
-                  <View style={styles.cardPane}>
-                    <Text style={styles.varNote}>
-                      Select any exercise below to swap it in. Your tracking data stays in place.
-                    </Text>
-
-                    {/* Original */}
-                    <View style={[styles.varItem, !isSwapped && styles.varItemActive]}>
-                      <View style={styles.varRow}>
-                        <View style={[styles.varNum, !isSwapped && { backgroundColor: colors.primary }]}>
-                          <Text style={[styles.varNumText, !isSwapped && { color: "#fff" }]}>★</Text>
-                        </View>
-                        <Text style={styles.varName}>{ex.name}</Text>
-                        <View style={styles.varEquip}>
-                          <Text style={styles.varEquipText}>Original</Text>
-                        </View>
-                      </View>
-                      <TouchableOpacity
-                        style={[styles.swapBtn, !isSwapped && { backgroundColor: colors.primary, borderColor: colors.primary }]}
-                        onPress={() => setSwap(exIndex, -1)}
-                        disabled={!isSwapped}
-                      >
-                        <Text style={[styles.swapBtnText, !isSwapped && { color: "#fff" }]}>
-                          {!isSwapped ? "✓ Currently active" : "↩ Use original"}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {ex.vars.map((v, vi) => {
-                      const isSel = isSwapped && swapIdx === vi;
-                      return (
-                        <View key={vi} style={[styles.varItem, isSel && styles.varItemActive]}>
-                          <View style={styles.varRow}>
-                            <View style={[styles.varNum, isSel && { backgroundColor: colors.primary }]}>
-                              <Text style={[styles.varNumText, isSel && { color: "#fff" }]}>{vi + 1}</Text>
-                            </View>
-                            <Text style={styles.varName}>{v.name}</Text>
-                            <View style={styles.varEquip}>
-                              <Text style={styles.varEquipText}>{v.equip}</Text>
-                            </View>
-                          </View>
-                          <Text style={styles.varDesc}>{v.desc}</Text>
-                          <TouchableOpacity
-                            style={[styles.swapBtn, isSel && { backgroundColor: colors.primary, borderColor: colors.primary }]}
-                            onPress={() => setSwap(exIndex, vi)}
-                            disabled={isSel}
-                          >
-                            <Text style={[styles.swapBtnText, isSel && { color: "#fff" }]}>
-                              {isSel ? "✓ Currently active" : "↔ Use this exercise"}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-                      );
-                    })}
-                  </View>
-                )}
-              </View>
+              <ExerciseCard
+                key={exIndex}
+                ex={ex}
+                exIndex={exIndex}
+                activeName={activeName}
+                activeDetail={activeDetail}
+                activeTab={activeTab}
+                isSwapped={isSwapped}
+                swapIdx={swapIdx}
+                savedThisSession={state?.savedThisSession ?? false}
+                prevData={prevData}
+                currData={currData}
+                unit={unit}
+                colors={colors}
+                onSetTab={(tab) => setTab(exIndex, tab)}
+                onSetSwap={(vi) => setSwap(exIndex, vi)}
+                onUpdateInput={(setIdx, field, val) => updateInput(exIndex, setIdx, field, val)}
+                onSave={() => saveSession(exIndex)}
+              />
             );
           })}
 
@@ -392,6 +279,220 @@ export default function WorkoutDayScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </>
+  );
+}
+
+// ── ExerciseCard component (allows hook use per-card) ──────────────────────
+interface ExerciseCardProps {
+  ex: Exercise;
+  exIndex: number;
+  activeName: string;
+  activeDetail: string;
+  activeTab: TabType;
+  isSwapped: boolean;
+  swapIdx: number;
+  savedThisSession: boolean;
+  prevData: SetData[];
+  currData: SetData[];
+  unit: string;
+  colors: { primary: string; light: string; tag: string; tagText: string };
+  onSetTab: (tab: TabType) => void;
+  onSetSwap: (vi: number) => void;
+  onUpdateInput: (setIdx: number, field: "weight" | "reps", val: string) => void;
+  onSave: () => void;
+}
+
+function ExerciseCard({
+  ex, exIndex, activeName, activeDetail, activeTab, isSwapped, swapIdx,
+  savedThisSession, prevData, currData, unit, colors,
+  onSetTab, onSetSwap, onUpdateInput, onSave,
+}: ExerciseCardProps) {
+  return (
+    <View style={styles.exCard}>
+      {/* Card header */}
+      <View style={styles.exCardHeader}>
+        <View style={[styles.exNum, { backgroundColor: colors.primary }]}>
+          <Text style={styles.exNumText}>{exIndex + 1}</Text>
+        </View>
+        <View style={styles.exHeaderMain}>
+          <Text style={styles.exName}>{activeName}</Text>
+          <View style={styles.exBadges}>
+            <View style={[styles.badge, ex.type === "compound" ? styles.badgeCompound : styles.badgeIsolation]}>
+              <Text style={[styles.badgeText, ex.type === "compound" ? styles.badgeCompoundText : styles.badgeIsolationText]}>
+                {ex.type}
+              </Text>
+            </View>
+            {isSwapped && (
+              <View style={styles.swappedBadge}>
+                <Text style={styles.swappedBadgeText}>↔ swapped</Text>
+              </View>
+            )}
+          </View>
+        </View>
+        <View style={styles.exSetsReps}>
+          <Text style={[styles.exSR, { color: colors.primary }]}>{ex.sets}×{ex.reps}</Text>
+          <Text style={styles.exSRLabel}>sets×reps</Text>
+        </View>
+      </View>
+
+      {/* Card tabs */}
+      <View style={styles.cardTabs}>
+        {(["info", "track", "variations"] as TabType[]).map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.cardTab, activeTab === tab && styles.cardTabActive]}
+            onPress={() => onSetTab(tab)}
+          >
+            <Text style={[styles.cardTabText, activeTab === tab && { color: colors.primary }]}>
+              {tab === "info" ? "📋 Info" : tab === "track" ? "📊 Track" : "🔄 Variations"}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Info pane */}
+      {activeTab === "info" && (
+        <View style={styles.cardPane}>
+          <ExerciseImage name={activeName} />
+          <Text style={styles.exDetail}>{activeDetail}</Text>
+          {isSwapped && (
+            <TouchableOpacity
+              style={styles.resetBtn}
+              onPress={() => onSetSwap(-1)}
+            >
+              <Text style={styles.resetBtnText}>↩ Reset to original</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {/* Track pane */}
+      {activeTab === "track" && (
+        <View style={styles.cardPane}>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.thCell, { width: 46 }]}>SET</Text>
+            <Text style={styles.thCell}>WEIGHT ({unit})</Text>
+            <Text style={styles.thCell}>REPS DONE</Text>
+            <Text style={[styles.thCell, { width: 70 }]}>vs PREV</Text>
+          </View>
+          {Array.from({ length: ex.sets }, (_, setIdx) => {
+            const cur = currData[setIdx];
+            const prev = prevData[setIdx];
+            const hasWeight = !!(cur?.weight);
+            const hasReps = !!(cur?.reps);
+            let arrow = "";
+            if (cur?.weight && prev?.weight) {
+              const cw = parseFloat(cur.weight);
+              const pw = parseFloat(prev.weight);
+              if (cw > pw) arrow = "▲";
+              else if (cw < pw) arrow = "▼";
+              else arrow = "—";
+            }
+            const arrowColor = arrow === "▲" ? "#22c55e" : arrow === "▼" ? "#ef4444" : "#f59e0b";
+
+            return (
+              <View key={setIdx} style={styles.tableRow}>
+                <Text style={styles.setLabel}>Set {setIdx + 1}</Text>
+                <TextInput
+                  style={[styles.setInput, hasWeight && styles.setInputFilled]}
+                  value={cur?.weight ?? ""}
+                  onChangeText={(v) => onUpdateInput(setIdx, "weight", v)}
+                  keyboardType="decimal-pad"
+                  placeholder="—"
+                  placeholderTextColor="#555"
+                />
+                <TextInput
+                  style={[styles.setInput, hasReps && styles.setInputFilled]}
+                  value={cur?.reps ?? ""}
+                  onChangeText={(v) => onUpdateInput(setIdx, "reps", v)}
+                  keyboardType="decimal-pad"
+                  placeholder="—"
+                  placeholderTextColor="#555"
+                />
+                <View style={[styles.prevCell, { width: 70 }]}>
+                  {prev?.weight || prev?.reps ? (
+                    <>
+                      <Text style={styles.prevText}>{prev.weight || "?"}×{prev.reps || "?"}</Text>
+                      {arrow !== "" && (
+                        <Text style={[styles.arrowText, { color: arrowColor }]}>{arrow}</Text>
+                      )}
+                    </>
+                  ) : (
+                    <Text style={styles.prevEmpty}>—</Text>
+                  )}
+                </View>
+              </View>
+            );
+          })}
+          <TouchableOpacity
+            style={[styles.saveBtn, { backgroundColor: colors.primary }]}
+            onPress={onSave}
+          >
+            <Text style={styles.saveBtnText}>
+              {savedThisSession ? "✓ Saved!" : "Save Session"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Variations pane */}
+      {activeTab === "variations" && (
+        <View style={styles.cardPane}>
+          <Text style={styles.varNote}>
+            Select any exercise below to swap it in. Your tracking data stays in place.
+          </Text>
+
+          {/* Original */}
+          <View style={[styles.varItem, !isSwapped && styles.varItemActive]}>
+            <View style={styles.varRow}>
+              <View style={[styles.varNum, !isSwapped && { backgroundColor: colors.primary }]}>
+                <Text style={[styles.varNumText, !isSwapped && { color: "#fff" }]}>★</Text>
+              </View>
+              <Text style={styles.varName}>{ex.name}</Text>
+              <View style={styles.varEquip}>
+                <Text style={styles.varEquipText}>Original</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={[styles.swapBtn, !isSwapped && { backgroundColor: colors.primary, borderColor: colors.primary }]}
+              onPress={() => onSetSwap(-1)}
+              disabled={!isSwapped}
+            >
+              <Text style={[styles.swapBtnText, !isSwapped && { color: "#fff" }]}>
+                {!isSwapped ? "✓ Currently active" : "↩ Use original"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {ex.vars.map((v, vi) => {
+            const isSel = isSwapped && swapIdx === vi;
+            return (
+              <View key={vi} style={[styles.varItem, isSel && styles.varItemActive]}>
+                <View style={styles.varRow}>
+                  <View style={[styles.varNum, isSel && { backgroundColor: colors.primary }]}>
+                    <Text style={[styles.varNumText, isSel && { color: "#fff" }]}>{vi + 1}</Text>
+                  </View>
+                  <Text style={styles.varName}>{v.name}</Text>
+                  <View style={styles.varEquip}>
+                    <Text style={styles.varEquipText}>{v.equip}</Text>
+                  </View>
+                </View>
+                <Text style={styles.varDesc}>{v.desc}</Text>
+                <TouchableOpacity
+                  style={[styles.swapBtn, isSel && { backgroundColor: colors.primary, borderColor: colors.primary }]}
+                  onPress={() => onSetSwap(vi)}
+                  disabled={isSel}
+                >
+                  <Text style={[styles.swapBtnText, isSel && { color: "#fff" }]}>
+                    {isSel ? "✓ Currently active" : "↔ Use this exercise"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+        </View>
+      )}
+    </View>
   );
 }
 
