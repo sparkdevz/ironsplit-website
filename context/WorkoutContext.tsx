@@ -24,7 +24,7 @@ const WorkoutContext = createContext<WorkoutContextType | null>(null);
 
 export function WorkoutProvider({ children }: { children: React.ReactNode }) {
   const [week, setWeekState] = useState<number>(1);
-  const [unit, setUnitState] = useState<"kg" | "lbs">("kg");
+  const [unit, setUnitState] = useState<"kg" | "lbs">("lbs");
   const [sessionCache, setSessionCache] = useState<Record<string, SetData[]>>({});
   const [swapCache, setSwapCache] = useState<Record<string, number>>({});
   const [reloadTrigger, setReloadTrigger] = useState<number>(0);
