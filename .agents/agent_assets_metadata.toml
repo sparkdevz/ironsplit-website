@@ -23,31 +23,31 @@ title = "Store Listing — Descriptions & Tags"
 id = "oTb_9xz6CGBKHJu6rxt01"
 uri = "file://store-assets/screenshots/ios-01-home.png"
 type = "image"
-title = "Screenshot 1 – Day Selection"
+title = "1 – Day Selection"
 
 [[outputs]]
 id = "3NKVsxFGUeCgSfrdOHNdP"
 uri = "file://store-assets/screenshots/ios-02-logging.png"
 type = "image"
-title = "Screenshot 2 – Set Logging"
+title = "2 – Set Logging"
 
 [[outputs]]
 id = "Vz8l_GW3duocY7OLWMUTz"
 uri = "file://store-assets/screenshots/ios-03-timer.png"
 type = "image"
-title = "Screenshot 3 – Rest Timer"
+title = "3 – Rest Timer"
 
 [[outputs]]
 id = "1PIVEzOtnRQ3xHZYJ8PbY"
 uri = "file://store-assets/screenshots/ios-04-weeks.png"
 type = "image"
-title = "Screenshot 4 – 12-Week Program"
+title = "4 – 12-Week Program"
 
 [[outputs]]
 id = "xNc93zZzIlbH_bQLWwf8-"
 uri = "file://store-assets/screenshots/ios-05-settings.png"
 type = "image"
-title = "Screenshot 5 – kg/lbs & Dark Mode"
+title = "5 – kg/lbs & Dark Mode"
 
 [[outputs]]
 id = "fNcPbozzvzpvU2gioJkLm"
