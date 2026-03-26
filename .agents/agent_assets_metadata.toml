@@ -48,3 +48,9 @@ id = "xNc93zZzIlbH_bQLWwf8-"
 uri = "file://store-assets/screenshots/ios-05-settings.png"
 type = "image"
 title = "Screenshot 5 – kg/lbs & Dark Mode"
+
+[[outputs]]
+id = "fNcPbozzvzpvU2gioJkLm"
+uri = "file://store-assets/screenshots/ironsplit-appstore-screenshots.tar.gz"
+type = "unspecified"
+title = "IronSplit App Store Screenshots (all 5)"
