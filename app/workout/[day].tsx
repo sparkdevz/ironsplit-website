@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Vibration,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -61,6 +62,132 @@ const imgStyles = StyleSheet.create({
     marginBottom: 14,
   },
   noImg: { fontSize: 11 },
+});
+
+// ── Rest Timer ─────────────────────────────────────────────────────────────
+const COMPOUND_OPTIONS = [90, 120, 180, 240];
+const ISOLATION_OPTIONS = [30, 45, 60, 90];
+
+function fmtTime(secs: number): string {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  if (m > 0) return `${m}:${s.toString().padStart(2, "0")}`;
+  return `${s}s`;
+}
+
+interface RestTimerProps {
+  label: string;
+  options: number[];
+  accentColor: string;
+  theme: ThemeColors;
+}
+
+function RestTimer({ label, options, accentColor, theme }: RestTimerProps) {
+  const [selected, setSelected] = useState<number | null>(null);
+  const [remaining, setRemaining] = useState(0);
+  const [running, setRunning] = useState(false);
+  const [done, setDone] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, []);
+
+  function launchTimer(secs: number) {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    setSelected(secs);
+    setRemaining(secs);
+    setRunning(true);
+    setDone(false);
+    let rem = secs;
+    intervalRef.current = setInterval(() => {
+      rem -= 1;
+      setRemaining(rem);
+      if (rem <= 0) {
+        clearInterval(intervalRef.current!);
+        intervalRef.current = null;
+        setRunning(false);
+        setDone(true);
+        Vibration.vibrate([0, 250, 100, 250]);
+      }
+    }, 1000);
+  }
+
+  function stopReset() {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = null;
+    setRunning(false);
+    setDone(false);
+    setRemaining(selected ?? 0);
+  }
+
+  const progress = selected ? (selected - remaining) / selected : 0;
+
+  return (
+    <View style={rtStyles.row}>
+      <Text style={[rtStyles.label, { color: theme.textFaint }]}>{label}</Text>
+      <View style={rtStyles.pills}>
+        {options.map((secs) => {
+          const isActive = selected === secs;
+          return (
+            <TouchableOpacity
+              key={secs}
+              style={[rtStyles.pill, { borderColor: theme.cardBorder, backgroundColor: theme.cardAlt },
+                isActive && { backgroundColor: accentColor, borderColor: accentColor }]}
+              onPress={() => launchTimer(secs)}
+            >
+              <Text style={[rtStyles.pillText, { color: theme.textMuted }, isActive && { color: "#fff" }]}>
+                {fmtTime(secs)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {selected !== null && (
+        <TouchableOpacity
+          style={[rtStyles.countdown, { borderColor: done ? "#22c55e" : running ? accentColor : theme.cardBorder,
+            backgroundColor: done ? "#0d2010" : theme.cardAlt }]}
+          onPress={running ? stopReset : () => launchTimer(selected)}
+        >
+          <Text style={[rtStyles.countdownText, { color: done ? "#22c55e" : running ? accentColor : theme.textMuted }]}>
+            {done ? "✓ Done!" : fmtTime(remaining)}
+          </Text>
+          {running && (
+            <View style={[rtStyles.progressBar, { backgroundColor: theme.cardBorder }]}>
+              <View style={[rtStyles.progressFill, { width: `${progress * 100}%` as any, backgroundColor: accentColor }]} />
+            </View>
+          )}
+          {!done && (
+            <Text style={[rtStyles.tapHint, { color: theme.textFaint }]}>
+              {running ? "tap to reset" : "tap to restart"}
+            </Text>
+          )}
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
+const rtStyles = StyleSheet.create({
+  row: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6, marginTop: 10 },
+  label: { fontSize: 9, fontWeight: "800", letterSpacing: 1, width: 68 },
+  pills: { flexDirection: "row", gap: 5, flexWrap: "wrap" },
+  pill: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8, borderWidth: 1 },
+  pillText: { fontSize: 10, fontWeight: "700" },
+  countdown: {
+    borderWidth: 1.5,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    alignItems: "center",
+    minWidth: 72,
+    overflow: "hidden",
+  },
+  countdownText: { fontSize: 13, fontWeight: "800" },
+  progressBar: { width: "100%", height: 2, borderRadius: 1, marginTop: 2, overflow: "hidden" },
+  progressFill: { height: 2, borderRadius: 1 },
+  tapHint: { fontSize: 8, marginTop: 1 },
 });
 
 // ── Main screen ────────────────────────────────────────────────────────────
@@ -194,6 +321,20 @@ export default function WorkoutDayScreen() {
                 </View>
               ))}
             </ScrollView>
+            <View style={[styles.restTimerBox, { borderTopColor: theme.separator }]}>
+              <RestTimer
+                label="COMPOUND"
+                options={COMPOUND_OPTIONS}
+                accentColor={colors.primary}
+                theme={theme}
+              />
+              <RestTimer
+                label="ISOLATION"
+                options={ISOLATION_OPTIONS}
+                accentColor="#f59e0b"
+                theme={theme}
+              />
+            </View>
           </View>
 
           {/* Summary bar */}
@@ -481,6 +622,7 @@ const styles = StyleSheet.create({
   errorContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
   errorText: { fontSize: 16 },
   dayHeader: { padding: 18, paddingBottom: 14 },
+  restTimerBox: { marginTop: 12, paddingTop: 10, borderTopWidth: 1, gap: 4 },
   dayTitle: { fontSize: 18, fontWeight: "800", marginBottom: 4 },
   daySub: { fontSize: 12, marginBottom: 10 },
   tagsRow: { flexDirection: "row" as const },
