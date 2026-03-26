@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ironsplit.app",
+      "bundleIdentifier": "com.alexrp8.ironsplit",
       "buildNumber": "5",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -47,7 +47,7 @@
       }
     },
     "android": {
-      "package": "com.ironsplit.app",
+      "package": "com.alexrp8.ironsplit",
       "versionCode": 5,
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
