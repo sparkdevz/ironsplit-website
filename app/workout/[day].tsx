@@ -174,19 +174,19 @@ function RestTimer({ label, options, accentColor, theme }: RestTimerProps) {
 }
 
 const rtStyles = StyleSheet.create({
-  timerBlock: { width: "100%", alignItems: "center", gap: 6 },
-  row: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5 },
-  label: { fontSize: 9, fontWeight: "800", letterSpacing: 0.5, width: 72, textAlign: "right" },
-  pills: { flexDirection: "row", gap: 4 },
-  pill: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 7, borderWidth: 1 },
-  pillText: { fontSize: 10, fontWeight: "700" },
+  timerBlock: { flex: 1, alignItems: "center", gap: 4 },
+  row: { flexDirection: "column", alignItems: "center", gap: 4 },
+  label: { fontSize: 9, fontWeight: "800", letterSpacing: 0.5, textAlign: "center" },
+  pills: { flexDirection: "row", gap: 3, flexWrap: "wrap", justifyContent: "center" },
+  pill: { paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, borderWidth: 1 },
+  pillText: { fontSize: 9, fontWeight: "700" },
   countdown: {
     borderWidth: 2,
     borderRadius: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     alignItems: "center",
-    width: "80%",
+    alignSelf: "stretch",
     overflow: "hidden",
   },
   countdownText: { fontSize: 28, fontWeight: "900" },
@@ -328,18 +328,20 @@ export default function WorkoutDayScreen() {
             </ScrollView>
             <View style={[styles.restTimerBox, { borderTopColor: theme.separator }]}>
               <Text style={[styles.restTimerHeading, { color: theme.textFaint }]}>REST TIMERS</Text>
-              <RestTimer
-                label="COMPOUND"
-                options={COMPOUND_OPTIONS}
-                accentColor={colors.primary}
-                theme={theme}
-              />
-              <RestTimer
-                label="ISOLATION"
-                options={ISOLATION_OPTIONS}
-                accentColor="#f59e0b"
-                theme={theme}
-              />
+              <View style={styles.restTimerSelectors}>
+                <RestTimer
+                  label="COMPOUND"
+                  options={COMPOUND_OPTIONS}
+                  accentColor={colors.primary}
+                  theme={theme}
+                />
+                <RestTimer
+                  label="ISOLATION"
+                  options={ISOLATION_OPTIONS}
+                  accentColor="#f59e0b"
+                  theme={theme}
+                />
+              </View>
             </View>
           </View>
 
@@ -628,7 +630,8 @@ const styles = StyleSheet.create({
   errorContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
   errorText: { fontSize: 16 },
   dayHeader: { padding: 18, paddingBottom: 14 },
-  restTimerBox: { marginTop: 10, paddingTop: 8, borderTopWidth: 1, gap: 2, alignItems: "center" },
+  restTimerBox: { marginTop: 10, paddingTop: 8, borderTopWidth: 1, alignItems: "center", gap: 6 },
+  restTimerSelectors: { flexDirection: "row", alignSelf: "stretch", gap: 12 },
   restTimerHeading: { fontSize: 9, fontWeight: "800", letterSpacing: 1.5, marginBottom: 4, textAlign: "center" },
   dayTitle: { fontSize: 18, fontWeight: "800", marginBottom: 4 },
   daySub: { fontSize: 12, marginBottom: 10 },
