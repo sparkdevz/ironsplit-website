@@ -11,6 +11,7 @@ import {
   Image,
   Vibration,
 } from "react-native";
+import { createAudioPlayer } from "expo-audio";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DAYS, DAY_COLORS, DayKey, Exercise } from "@/constants/workoutData";
@@ -82,6 +83,14 @@ interface RestTimerProps {
   theme: ThemeColors;
 }
 
+function playBeep() {
+  try {
+    const player = createAudioPlayer(require("../../assets/sounds/beep.wav"));
+    player.play();
+    setTimeout(() => { try { player.remove(); } catch (_) {} }, 2000);
+  } catch (_) {}
+}
+
 function RestTimer({ label, options, accentColor, theme }: RestTimerProps) {
   const [selected, setSelected] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
@@ -109,6 +118,7 @@ function RestTimer({ label, options, accentColor, theme }: RestTimerProps) {
         setRunning(false);
         setDone(true);
         Vibration.vibrate([0, 250, 100, 250]);
+        playBeep();
       }
     }, 1000);
   }
