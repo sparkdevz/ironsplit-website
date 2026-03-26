@@ -124,26 +124,30 @@ function RestTimer({ label, options, accentColor, theme }: RestTimerProps) {
   const progress = selected ? (selected - remaining) / selected : 0;
 
   return (
-    <View style={rtStyles.row}>
-      <Text style={[rtStyles.label, { color: theme.textFaint }]}>{label}</Text>
-      <View style={rtStyles.pills}>
-        {options.map((secs) => {
-          const isActive = selected === secs;
-          return (
-            <TouchableOpacity
-              key={secs}
-              style={[rtStyles.pill, { borderColor: theme.cardBorder, backgroundColor: theme.cardAlt },
-                isActive && { backgroundColor: accentColor, borderColor: accentColor }]}
-              onPress={() => launchTimer(secs)}
-            >
-              <Text style={[rtStyles.pillText, { color: theme.textMuted }, isActive && { color: "#fff" }]}>
-                {fmtTime(secs)}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+    <View style={rtStyles.timerBlock}>
+      {/* Selection row */}
+      <View style={rtStyles.row}>
+        <Text style={[rtStyles.label, { color: theme.textFaint }]}>{label}</Text>
+        <View style={rtStyles.pills}>
+          {options.map((secs) => {
+            const isActive = selected === secs;
+            return (
+              <TouchableOpacity
+                key={secs}
+                style={[rtStyles.pill, { borderColor: theme.cardBorder, backgroundColor: theme.cardAlt },
+                  isActive && { backgroundColor: accentColor, borderColor: accentColor }]}
+                onPress={() => launchTimer(secs)}
+              >
+                <Text style={[rtStyles.pillText, { color: theme.textMuted }, isActive && { color: "#fff" }]}>
+                  {fmtTime(secs)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
+      {/* Countdown row */}
       {selected !== null && (
         <TouchableOpacity
           style={[rtStyles.countdown, { borderColor: done ? "#22c55e" : running ? accentColor : theme.cardBorder,
@@ -170,7 +174,8 @@ function RestTimer({ label, options, accentColor, theme }: RestTimerProps) {
 }
 
 const rtStyles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 5, marginTop: 4 },
+  timerBlock: { width: "100%", alignItems: "center", gap: 6 },
+  row: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5 },
   label: { fontSize: 9, fontWeight: "800", letterSpacing: 0.5, width: 72, textAlign: "right" },
   pills: { flexDirection: "row", gap: 4 },
   pill: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 7, borderWidth: 1 },
@@ -178,16 +183,16 @@ const rtStyles = StyleSheet.create({
   countdown: {
     borderWidth: 2,
     borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
     alignItems: "center",
-    minWidth: 90,
+    width: "80%",
     overflow: "hidden",
   },
-  countdownText: { fontSize: 24, fontWeight: "900" },
-  progressBar: { width: "100%", height: 3, borderRadius: 2, marginTop: 3, overflow: "hidden" },
+  countdownText: { fontSize: 28, fontWeight: "900" },
+  progressBar: { width: "100%", height: 3, borderRadius: 2, marginTop: 4, overflow: "hidden" },
   progressFill: { height: 3, borderRadius: 2 },
-  tapHint: { fontSize: 8, marginTop: 1 },
+  tapHint: { fontSize: 8, marginTop: 2 },
 });
 
 // ── Main screen ────────────────────────────────────────────────────────────
