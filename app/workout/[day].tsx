@@ -176,18 +176,18 @@ const rtStyles = StyleSheet.create({
   pill: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8, borderWidth: 1 },
   pillText: { fontSize: 10, fontWeight: "700" },
   countdown: {
-    borderWidth: 1.5,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    borderWidth: 2,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     alignItems: "center",
-    minWidth: 72,
+    minWidth: 100,
     overflow: "hidden",
   },
-  countdownText: { fontSize: 13, fontWeight: "800" },
-  progressBar: { width: "100%", height: 2, borderRadius: 1, marginTop: 2, overflow: "hidden" },
-  progressFill: { height: 2, borderRadius: 1 },
-  tapHint: { fontSize: 8, marginTop: 1 },
+  countdownText: { fontSize: 26, fontWeight: "900" },
+  progressBar: { width: "100%", height: 3, borderRadius: 2, marginTop: 4, overflow: "hidden" },
+  progressFill: { height: 3, borderRadius: 2 },
+  tapHint: { fontSize: 9, marginTop: 2 },
 });
 
 // ── Main screen ────────────────────────────────────────────────────────────
