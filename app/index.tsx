@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
-  Alert,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -22,6 +21,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { week, setWeek, unit, setUnit, clearWeek, getSessionData, theme, colorScheme, toggleColorScheme } = useWorkout();
   const [showWeekPicker, setShowWeekPicker] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -41,14 +41,12 @@ export default function HomeScreen() {
   }
 
   function handleClearWeek() {
-    Alert.alert(
-      "Clear Week",
-      `Clear all logged data for Week ${week}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Clear", style: "destructive", onPress: () => clearWeek(week) },
-      ]
-    );
+    setConfirmClear(true);
+  }
+
+  async function executeClearWeek() {
+    setConfirmClear(false);
+    await clearWeek(week);
   }
 
   const workoutDays = SCHEDULE.filter((d) => !d.isRest);
@@ -205,13 +203,27 @@ export default function HomeScreen() {
         </View>
 
         {/* Clear week */}
-        <TouchableOpacity
-          style={[styles.clearBtn, { backgroundColor: theme.clearBtnBg, borderColor: theme.clearBtnBorder }]}
-          onPress={handleClearWeek}
-        >
-          <Ionicons name="trash-outline" size={16} color="#dc2626" />
-          <Text style={styles.clearBtnText}>Clear Week {week} Data</Text>
-        </TouchableOpacity>
+        {confirmClear ? (
+          <View style={[styles.confirmRow, { backgroundColor: theme.clearBtnBg, borderColor: "#dc2626", borderWidth: 1 }]}>
+            <Text style={[styles.confirmText, { color: theme.text }]}>Delete all Week {week} data?</Text>
+            <View style={styles.confirmBtns}>
+              <TouchableOpacity style={[styles.confirmCancel, { backgroundColor: theme.card }]} onPress={() => setConfirmClear(false)}>
+                <Text style={[styles.confirmCancelText, { color: theme.textMuted }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.confirmDelete} onPress={executeClearWeek}>
+                <Text style={styles.confirmDeleteText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.clearBtn, { backgroundColor: theme.clearBtnBg, borderColor: theme.clearBtnBorder }]}
+            onPress={handleClearWeek}
+          >
+            <Ionicons name="trash-outline" size={16} color="#dc2626" />
+            <Text style={styles.clearBtnText}>Clear Week {week} Data</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
       <AdBanner />
     </View>
@@ -313,4 +325,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   clearBtnText: { color: "#dc2626", fontSize: 13, fontWeight: "700" },
+  confirmRow: {
+    marginHorizontal: 18,
+    marginTop: 24,
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+  },
+  confirmText: { fontSize: 14, fontWeight: "600", textAlign: "center" },
+  confirmBtns: { flexDirection: "row", gap: 10 },
+  confirmCancel: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  confirmCancelText: { fontSize: 14, fontWeight: "600" },
+  confirmDelete: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    backgroundColor: "#dc2626",
+  },
+  confirmDeleteText: { fontSize: 14, fontWeight: "700", color: "#fff" },
 });

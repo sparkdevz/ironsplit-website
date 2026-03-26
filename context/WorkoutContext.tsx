@@ -105,22 +105,18 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
       const storageWeekKeys = storageKeys.filter(
         (k) => k.startsWith("wl_") && !k.startsWith("wl_swap_") && pattern.test(k)
       );
-      console.log("[clearWeek] week=", w, "storageWeekKeys=", storageWeekKeys);
       if (storageWeekKeys.length > 0) {
         await AsyncStorage.multiRemove(storageWeekKeys);
       }
 
       // Remove from cache by scanning cache keys directly (catches in-flight writes)
       setSessionCache((prev) => {
-        const cacheKeys = Object.keys(prev);
-        console.log("[clearWeek] cacheKeys=", cacheKeys);
         const next = { ...prev };
-        cacheKeys.forEach((k) => {
+        Object.keys(next).forEach((k) => {
           if (!k.startsWith("wl_swap_") && pattern.test(k)) {
             delete next[k];
           }
         });
-        console.log("[clearWeek] remaining cache=", Object.keys(next));
         return next;
       });
 
