@@ -632,7 +632,7 @@ const styles = StyleSheet.create({
   dayHeader: { padding: 18, paddingBottom: 14 },
   restTimerBox: { marginTop: 10, paddingTop: 8, borderTopWidth: 1, alignItems: "center", gap: 6 },
   restTimerSelectors: { flexDirection: "row", alignSelf: "stretch", gap: 12 },
-  restTimerHeading: { fontSize: 9, fontWeight: "800", letterSpacing: 1.5, marginBottom: 4, textAlign: "center" },
+  restTimerHeading: { fontSize: 13, fontWeight: "800", letterSpacing: 1.5, marginBottom: 4, textAlign: "center" },
   dayTitle: { fontSize: 18, fontWeight: "800", marginBottom: 4 },
   daySub: { fontSize: 12, marginBottom: 10 },
   tagsRow: { flexDirection: "row" as const },
