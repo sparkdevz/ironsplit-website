@@ -21,6 +21,10 @@ args = "Start Frontend"
 task = "workflow.run"
 args = "Screenshot Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Video Commercial"
+
 [[workflows.workflow]]
 name = "Start Frontend"
 author = "agent"
@@ -45,9 +49,25 @@ waitForPort = 3000
 [workflows.workflow.metadata]
 outputType = "console"
 
+[[workflows.workflow]]
+name = "Video Commercial"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd commercial && npm run dev"
+waitForPort = 3001
+
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[ports]]
 localPort = 3000
 externalPort = 3000
+
+[[ports]]
+localPort = 3001
+externalPort = 3001
 
 [[ports]]
 localPort = 5000
