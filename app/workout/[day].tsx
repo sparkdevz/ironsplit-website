@@ -309,6 +309,25 @@ export default function WorkoutDayScreen() {
         style={[styles.container, { backgroundColor: theme.bg }]}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
+        {/* Fixed REST TIMERS bar — stays visible while scrolling */}
+        <View style={[styles.restTimerFixed, { backgroundColor: colors.light, borderBottomColor: theme.separator }]}>
+          <Text style={[styles.restTimerHeading, { color: theme.textFaint }]}>REST TIMERS</Text>
+          <View style={styles.restTimerSelectors}>
+            <RestTimer
+              label="COMPOUND"
+              options={COMPOUND_OPTIONS}
+              accentColor={colors.primary}
+              theme={theme}
+            />
+            <RestTimer
+              label="ISOLATION"
+              options={ISOLATION_OPTIONS}
+              accentColor="#f59e0b"
+              theme={theme}
+            />
+          </View>
+        </View>
+
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={{ paddingBottom: bottomPad + 32 }}
@@ -326,23 +345,6 @@ export default function WorkoutDayScreen() {
                 </View>
               ))}
             </ScrollView>
-            <View style={[styles.restTimerBox, { borderTopColor: theme.separator }]}>
-              <Text style={[styles.restTimerHeading, { color: theme.textFaint }]}>REST TIMERS</Text>
-              <View style={styles.restTimerSelectors}>
-                <RestTimer
-                  label="COMPOUND"
-                  options={COMPOUND_OPTIONS}
-                  accentColor={colors.primary}
-                  theme={theme}
-                />
-                <RestTimer
-                  label="ISOLATION"
-                  options={ISOLATION_OPTIONS}
-                  accentColor="#f59e0b"
-                  theme={theme}
-                />
-              </View>
-            </View>
           </View>
 
           {/* Summary bar */}
@@ -630,9 +632,16 @@ const styles = StyleSheet.create({
   errorContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
   errorText: { fontSize: 16 },
   dayHeader: { padding: 18, paddingBottom: 14 },
-  restTimerBox: { marginTop: 10, paddingTop: 8, borderTopWidth: 1, alignItems: "center", gap: 6 },
-  restTimerSelectors: { flexDirection: "row", alignSelf: "stretch", gap: 12 },
-  restTimerHeading: { fontSize: 13, fontWeight: "800", letterSpacing: 1.5, marginBottom: 4, textAlign: "center" },
+  restTimerFixed: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    alignItems: "center" as const,
+    gap: 6,
+  },
+  restTimerSelectors: { flexDirection: "row" as const, alignSelf: "stretch" as const, gap: 12 },
+  restTimerHeading: { fontSize: 13, fontWeight: "800", letterSpacing: 1.5, marginBottom: 2, textAlign: "center" as const },
   dayTitle: { fontSize: 18, fontWeight: "800", marginBottom: 4 },
   daySub: { fontSize: 12, marginBottom: 10 },
   tagsRow: { flexDirection: "row" as const },
