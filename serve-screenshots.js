@@ -14,6 +14,13 @@ const files = [
 ];
 
 const server = http.createServer((req, res) => {
+  if (req.url === "/privacy-policy" || req.url === "/privacy-policy.html") {
+    const pp = path.join(__dirname, "store-assets/privacy-policy.html");
+    res.writeHead(200, { "Content-Type": "text/html" });
+    fs.createReadStream(pp).pipe(res);
+    return;
+  }
+
   const fileName = req.url.replace("/", "");
   const filePath = path.join(DIR, fileName);
 
