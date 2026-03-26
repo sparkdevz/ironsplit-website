@@ -322,6 +322,7 @@ export default function WorkoutDayScreen() {
               ))}
             </ScrollView>
             <View style={[styles.restTimerBox, { borderTopColor: theme.separator }]}>
+              <Text style={[styles.restTimerHeading, { color: theme.textFaint }]}>REST TIMERS</Text>
               <RestTimer
                 label="COMPOUND"
                 options={COMPOUND_OPTIONS}
@@ -623,6 +624,7 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 16 },
   dayHeader: { padding: 18, paddingBottom: 14 },
   restTimerBox: { marginTop: 12, paddingTop: 10, borderTopWidth: 1, gap: 4 },
+  restTimerHeading: { fontSize: 9, fontWeight: "800", letterSpacing: 1.5, marginBottom: 2 },
   dayTitle: { fontSize: 18, fontWeight: "800", marginBottom: 4 },
   daySub: { fontSize: 12, marginBottom: 10 },
   tagsRow: { flexDirection: "row" as const },
