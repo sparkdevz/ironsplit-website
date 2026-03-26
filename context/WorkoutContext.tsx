@@ -98,17 +98,32 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
 
   const clearWeek = useCallback(
     async (w: number) => {
-      const keys = await AsyncStorage.getAllKeys();
       const pattern = new RegExp(`_w${w}$`);
-      const weekKeys = keys.filter(
+
+      // Remove from AsyncStorage
+      const storageKeys = await AsyncStorage.getAllKeys();
+      const storageWeekKeys = storageKeys.filter(
         (k) => k.startsWith("wl_") && !k.startsWith("wl_swap_") && pattern.test(k)
       );
-      await AsyncStorage.multiRemove(weekKeys);
+      console.log("[clearWeek] week=", w, "storageWeekKeys=", storageWeekKeys);
+      if (storageWeekKeys.length > 0) {
+        await AsyncStorage.multiRemove(storageWeekKeys);
+      }
+
+      // Remove from cache by scanning cache keys directly (catches in-flight writes)
       setSessionCache((prev) => {
+        const cacheKeys = Object.keys(prev);
+        console.log("[clearWeek] cacheKeys=", cacheKeys);
         const next = { ...prev };
-        weekKeys.forEach((k) => delete next[k]);
+        cacheKeys.forEach((k) => {
+          if (!k.startsWith("wl_swap_") && pattern.test(k)) {
+            delete next[k];
+          }
+        });
+        console.log("[clearWeek] remaining cache=", Object.keys(next));
         return next;
       });
+
       setReloadTrigger((t) => t + 1);
     },
     []
