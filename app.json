@@ -17,6 +17,7 @@
       "bundleIdentifier": "com.ironsplit.app",
       "buildNumber": "5",
       "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
         "NSUserTrackingUsageDescription": "This identifier will be used to show you personalised ads and help keep the app free.",
         "NSMicrophoneUsageDescription": "IronSplit does not use the microphone.",
         "SKAdNetworkItems": [
