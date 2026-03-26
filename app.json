@@ -18,12 +18,13 @@
     },
     "android": {
       "package": "com.ironsplit.app",
-      "versionCode": 4,
+      "versionCode": 5,
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundColor": "#1a1a1a"
       },
-      "permissions": []
+      "permissions": [],
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +33,12 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false
+        }
+      ],
       [
         "react-native-google-mobile-ads",
         {
