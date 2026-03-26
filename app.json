@@ -14,7 +14,36 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ironsplit.app"
+      "bundleIdentifier": "com.ironsplit.app",
+      "buildNumber": "5",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "This identifier will be used to show you personalised ads and help keep the app free.",
+        "NSMicrophoneUsageDescription": "IronSplit does not use the microphone.",
+        "SKAdNetworkItems": [
+          { "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork" },
+          { "SKAdNetworkIdentifier": "4fzdc2evr5.skadnetwork" },
+          { "SKAdNetworkIdentifier": "2fnua5tdw4.skadnetwork" },
+          { "SKAdNetworkIdentifier": "ydx93a7ass.skadnetwork" },
+          { "SKAdNetworkIdentifier": "5a6flpkh64.skadnetwork" },
+          { "SKAdNetworkIdentifier": "p78axxw29g.skadnetwork" },
+          { "SKAdNetworkIdentifier": "v72qych5uu.skadnetwork" },
+          { "SKAdNetworkIdentifier": "c6k4g5qg8m.skadnetwork" },
+          { "SKAdNetworkIdentifier": "s39g8k73mm.skadnetwork" },
+          { "SKAdNetworkIdentifier": "3qy4746246.skadnetwork" },
+          { "SKAdNetworkIdentifier": "3sh42y64l3.skadnetwork" },
+          { "SKAdNetworkIdentifier": "f38h382jlk.skadnetwork" },
+          { "SKAdNetworkIdentifier": "hs6bdukanm.skadnetwork" },
+          { "SKAdNetworkIdentifier": "prcb7njmu6.skadnetwork" },
+          { "SKAdNetworkIdentifier": "wzmmz9fp6w.skadnetwork" },
+          { "SKAdNetworkIdentifier": "mlmmfzh3r3.skadnetwork" },
+          { "SKAdNetworkIdentifier": "t38b2kh725.skadnetwork" },
+          { "SKAdNetworkIdentifier": "7ug5zh24hu.skadnetwork" },
+          { "SKAdNetworkIdentifier": "9rd848q2bz.skadnetwork" },
+          { "SKAdNetworkIdentifier": "8s468mfl3y.skadnetwork" },
+          { "SKAdNetworkIdentifier": "2u9pt9hc89.skadnetwork" },
+          { "SKAdNetworkIdentifier": "8zgomd301l.skadnetwork" }
+        ]
+      }
     },
     "android": {
       "package": "com.ironsplit.app",
@@ -43,7 +72,8 @@
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-6293674677101068~9368465655",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "userTrackingUsageDescription": "This identifier will be used to show you personalised ads and help keep the app free."
         }
       ]
     ],
