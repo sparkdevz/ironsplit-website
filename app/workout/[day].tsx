@@ -170,24 +170,24 @@ function RestTimer({ label, options, accentColor, theme }: RestTimerProps) {
 }
 
 const rtStyles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6, marginTop: 10 },
-  label: { fontSize: 9, fontWeight: "800", letterSpacing: 1, width: 68 },
-  pills: { flexDirection: "row", gap: 5, flexWrap: "wrap" },
-  pill: { paddingHorizontal: 9, paddingVertical: 4, borderRadius: 8, borderWidth: 1 },
+  row: { flexDirection: "row", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 5, marginTop: 4 },
+  label: { fontSize: 9, fontWeight: "800", letterSpacing: 0.5, width: 72, textAlign: "right" },
+  pills: { flexDirection: "row", gap: 4 },
+  pill: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 7, borderWidth: 1 },
   pillText: { fontSize: 10, fontWeight: "700" },
   countdown: {
     borderWidth: 2,
     borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     alignItems: "center",
-    minWidth: 100,
+    minWidth: 90,
     overflow: "hidden",
   },
-  countdownText: { fontSize: 26, fontWeight: "900" },
-  progressBar: { width: "100%", height: 3, borderRadius: 2, marginTop: 4, overflow: "hidden" },
+  countdownText: { fontSize: 24, fontWeight: "900" },
+  progressBar: { width: "100%", height: 3, borderRadius: 2, marginTop: 3, overflow: "hidden" },
   progressFill: { height: 3, borderRadius: 2 },
-  tapHint: { fontSize: 9, marginTop: 2 },
+  tapHint: { fontSize: 8, marginTop: 1 },
 });
 
 // ── Main screen ────────────────────────────────────────────────────────────
@@ -623,8 +623,8 @@ const styles = StyleSheet.create({
   errorContainer: { flex: 1, alignItems: "center", justifyContent: "center" },
   errorText: { fontSize: 16 },
   dayHeader: { padding: 18, paddingBottom: 14 },
-  restTimerBox: { marginTop: 12, paddingTop: 10, borderTopWidth: 1, gap: 4 },
-  restTimerHeading: { fontSize: 9, fontWeight: "800", letterSpacing: 1.5, marginBottom: 2 },
+  restTimerBox: { marginTop: 10, paddingTop: 8, borderTopWidth: 1, gap: 2, alignItems: "center" },
+  restTimerHeading: { fontSize: 9, fontWeight: "800", letterSpacing: 1.5, marginBottom: 4, textAlign: "center" },
   dayTitle: { fontSize: 18, fontWeight: "800", marginBottom: 4 },
   daySub: { fontSize: 12, marginBottom: 10 },
   tagsRow: { flexDirection: "row" as const },
