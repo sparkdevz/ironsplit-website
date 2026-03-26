@@ -99,9 +99,16 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
   const clearWeek = useCallback(
     async (w: number) => {
       const keys = await AsyncStorage.getAllKeys();
-      const weekKeys = keys.filter((k) => k.startsWith(`wl_`) && k.endsWith(`_w${w}`) && !k.startsWith("wl_swap_"));
+      const pattern = new RegExp(`_w${w}$`);
+      const weekKeys = keys.filter(
+        (k) => k.startsWith("wl_") && !k.startsWith("wl_swap_") && pattern.test(k)
+      );
       await AsyncStorage.multiRemove(weekKeys);
-      setSessionCache({});
+      setSessionCache((prev) => {
+        const next = { ...prev };
+        weekKeys.forEach((k) => delete next[k]);
+        return next;
+      });
       setReloadTrigger((t) => t + 1);
     },
     []
@@ -136,7 +143,7 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
       try {
         const keys = await AsyncStorage.getAllKeys();
         const weekKeys = keys.filter((k) => k.match(/^wl_\w+_\d+_w\d+$/) && !k.startsWith("wl_swap_"));
-        if (weekKeys.length === 0) return;
+        if (weekKeys.length === 0) { setSessionCache({}); return; }
         const pairs = await AsyncStorage.multiGet(weekKeys);
         const newCache: Record<string, SetData[]> = {};
         pairs.forEach(([k, v]) => { if (v) newCache[k] = JSON.parse(v); });
