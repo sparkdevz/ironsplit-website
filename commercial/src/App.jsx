@@ -1,66 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-function useTransitionSound() {
-  const ctxRef = useRef(null);
-
-  const initCtx = useCallback(() => {
-    if (!ctxRef.current) {
-      ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    }
-  }, []);
-
-  const play = useCallback(() => {
-    try { initCtx(); } catch (_) {}
-    const ctx = ctxRef.current;
-    if (!ctx) return;
-    const t = ctx.currentTime;
-
-    const thud = ctx.createOscillator();
-    const thudG = ctx.createGain();
-    thud.frequency.setValueAtTime(110, t);
-    thud.frequency.exponentialRampToValueAtTime(22, t + 0.22);
-    thudG.gain.setValueAtTime(0.85, t);
-    thudG.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
-    thud.connect(thudG); thudG.connect(ctx.destination);
-    thud.start(t); thud.stop(t + 0.3);
-
-    const ring = ctx.createOscillator();
-    const ringG = ctx.createGain();
-    ring.type = 'sine'; ring.frequency.value = 1400;
-    ringG.gain.setValueAtTime(0.12, t);
-    ringG.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
-    ring.connect(ringG); ringG.connect(ctx.destination);
-    ring.start(t); ring.stop(t + 0.3);
-
-    const bufLen = Math.floor(ctx.sampleRate * 0.12);
-    const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < bufLen; i++) d[i] = Math.random() * 2 - 1;
-    const noise = ctx.createBufferSource(); noise.buffer = buf;
-    const flt = ctx.createBiquadFilter(); flt.type = 'bandpass'; flt.frequency.value = 3000; flt.Q.value = 0.6;
-    const noiseG = ctx.createGain();
-    noiseG.gain.setValueAtTime(0.28, t);
-    noiseG.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-    noise.connect(flt); flt.connect(noiseG); noiseG.connect(ctx.destination);
-    noise.start(t); noise.stop(t + 0.15);
-  }, [initCtx]);
-
-  useEffect(() => {
-    const go = () => initCtx();
-    document.addEventListener('click', go, { once: true });
-    document.addEventListener('keydown', go, { once: true });
-    try { initCtx(); } catch (_) {}
-    return () => {
-      document.removeEventListener('click', go);
-      document.removeEventListener('keydown', go);
-      ctxRef.current?.close();
-      ctxRef.current = null;
-    };
-  }, [initCtx]);
-
-  return { play };
-}
 
 // Importing assets
 import imgHome from '../../store-assets/screenshots/ios-01-home.png';
@@ -81,8 +20,6 @@ const TOTAL_DURATION = SCENE_DURATIONS.reduce((a, b) => a + b, 0);
 
 export default function App() {
   const [currentScene, setCurrentScene] = useState(0);
-  const { play } = useTransitionSound();
-  const isFirst = useRef(true);
 
   const [recording, setRecording] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -92,11 +29,6 @@ export default function App() {
   const countdownRef = useRef(null);
 
   useEffect(() => {
-    if (isFirst.current) {
-      isFirst.current = false;
-    } else {
-      play();
-    }
     let timer = setTimeout(() => {
       setCurrentScene((prev) => (prev + 1) % SCENE_DURATIONS.length);
     }, SCENE_DURATIONS[currentScene]);
