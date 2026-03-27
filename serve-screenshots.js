@@ -14,6 +14,22 @@ const iosFiles = [
   { name: "ios-05-settings.png", label: "5 – kg/lbs & Dark Mode" },
 ];
 
+const iphone65Files = [
+  { name: "ios-01-home.png", label: "1 – Day Selection (1242×2688)" },
+  { name: "ios-02-logging.png", label: "2 – Set Logging (1242×2688)" },
+  { name: "ios-03-timer.png", label: "3 – Rest Timer (1242×2688)" },
+  { name: "ios-04-weeks.png", label: "4 – 12-Week Program (1242×2688)" },
+  { name: "ios-05-settings.png", label: "5 – kg/lbs & Dark Mode (1242×2688)" },
+];
+
+const ipad13Files = [
+  { name: "ios-01-home.png", label: "1 – Day Selection (2048×2732)" },
+  { name: "ios-02-logging.png", label: "2 – Set Logging (2048×2732)" },
+  { name: "ios-03-timer.png", label: "3 – Rest Timer (2048×2732)" },
+  { name: "ios-04-weeks.png", label: "4 – 12-Week Program (2048×2732)" },
+  { name: "ios-05-settings.png", label: "5 – kg/lbs & Dark Mode (2048×2732)" },
+];
+
 const gpFiles = [
   { path: "icon-512.png", label: "App Icon (512×512 PNG)" },
   { path: "feature-graphic-1024x500.png", label: "Feature Graphic (1024×500 PNG)" },
@@ -99,6 +115,32 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (req.url.startsWith("/iphone-6-5/")) {
+    const fileName = req.url.replace("/iphone-6-5/", "");
+    const filePath = path.join(DIR, "iphone-6-5", fileName);
+    if (fileName && fs.existsSync(filePath) && fileName.endsWith(".png")) {
+      res.writeHead(200, {
+        "Content-Type": "image/png",
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+      });
+      fs.createReadStream(filePath).pipe(res);
+      return;
+    }
+  }
+
+  if (req.url.startsWith("/ipad-13/")) {
+    const fileName = req.url.replace("/ipad-13/", "");
+    const filePath = path.join(DIR, "ipad-13", fileName);
+    if (fileName && fs.existsSync(filePath) && fileName.endsWith(".png")) {
+      res.writeHead(200, {
+        "Content-Type": "image/png",
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+      });
+      fs.createReadStream(filePath).pipe(res);
+      return;
+    }
+  }
+
   const fileName = req.url.replace("/", "");
   const filePath = path.join(DIR, fileName);
 
@@ -114,7 +156,25 @@ const server = http.createServer((req, res) => {
   const iosLinks = iosFiles
     .map(
       (f) =>
-        `<a href="/${f.name}" download="${f.name}" style="display:block;padding:18px 0;font-size:18px;color:#f59e0b;border-bottom:1px solid #2a2a2a;text-decoration:none;">
+        `<a href="/${f.name}" download="${f.name}" style="display:block;padding:14px 0;font-size:15px;color:#f59e0b;border-bottom:1px solid #2a2a2a;text-decoration:none;">
+          ⬇ ${f.label}
+        </a>`
+    )
+    .join("");
+
+  const iphone65Links = iphone65Files
+    .map(
+      (f) =>
+        `<a href="/iphone-6-5/${f.name}" download="${f.name}" style="display:block;padding:14px 0;font-size:15px;color:#f59e0b;border-bottom:1px solid #2a2a2a;text-decoration:none;">
+          ⬇ ${f.label}
+        </a>`
+    )
+    .join("");
+
+  const ipad13Links = ipad13Files
+    .map(
+      (f) =>
+        `<a href="/ipad-13/${f.name}" download="${f.name}" style="display:block;padding:14px 0;font-size:15px;color:#f59e0b;border-bottom:1px solid #2a2a2a;text-decoration:none;">
           ⬇ ${f.label}
         </a>`
     )
@@ -129,15 +189,33 @@ const server = http.createServer((req, res) => {
   <style>
     body{margin:0;background:#111;color:#fff;font-family:sans-serif;padding:24px;}
     h1{color:#f59e0b;font-size:22px;margin-bottom:4px;}
-    p{color:#888;font-size:14px;margin-bottom:24px;}
+    h2{color:#f59e0b;font-size:16px;margin:28px 0 4px;}
+    p{color:#888;font-size:13px;margin:0 0 12px;}
     .nav{display:block;padding:12px 20px;background:#222;color:#f59e0b;font-size:14px;border-radius:8px;text-decoration:none;margin-bottom:24px;text-align:center;}
+    .section{background:#1a1a1a;border-radius:10px;padding:12px 18px;margin-bottom:20px;}
   </style>
 </head>
 <body>
-  <h1>IronSplit Screenshots</h1>
+  <h1>IronSplit – iOS App Store Screenshots</h1>
   <a class="nav" href="/google-play">📦 Google Play Store Assets →</a>
-  <p>iOS App Store screenshots:</p>
-  ${iosLinks}
+
+  <div class="section">
+    <h2>6.7-inch iPhone (1284×2778) — iPhone 14 Pro Max slot</h2>
+    <p>Upload these to the 6.7" iPhone display slot in App Store Connect.</p>
+    ${iosLinks}
+  </div>
+
+  <div class="section">
+    <h2>6.5-inch iPhone (1242×2688) — required slot</h2>
+    <p>Upload these to the 6.5" iPhone display slot in App Store Connect.</p>
+    ${iphone65Links}
+  </div>
+
+  <div class="section">
+    <h2>13-inch iPad Pro (2048×2732) — required slot</h2>
+    <p>Upload these to the iPad Pro 13" display slot in App Store Connect.</p>
+    ${ipad13Links}
+  </div>
 </body>
 </html>`);
 });
