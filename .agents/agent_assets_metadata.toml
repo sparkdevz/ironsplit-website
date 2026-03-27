@@ -54,3 +54,9 @@ id = "fNcPbozzvzpvU2gioJkLm"
 uri = "file://store-assets/screenshots/ironsplit-appstore-screenshots.tar.gz"
 type = "unspecified"
 title = "IronSplit App Store Screenshots (all 5)"
+
+[[outputs]]
+id = "wfJXqhM2AIo_mHFgpyqQx"
+uri = "file://store-assets/ironsplit-commercial.mp4"
+type = "video"
+title = "IronSplit Commercial (MP4, 1280×720)"

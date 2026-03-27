@@ -23,6 +23,7 @@
     "expo-router": "~55.0.7",
     "expo-splash-screen": "~55.0.12",
     "expo-status-bar": "~55.0.4",
+    "puppeteer": "^24.40.0",
     "react": "19.2.0",
     "react-dom": "^19.2.0",
     "react-native": "0.83.2",
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "playwright": "^1.58.2",
     "typescript": "~5.9.2"
   },
   "private": true
