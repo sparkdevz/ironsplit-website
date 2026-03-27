@@ -85,10 +85,20 @@ const IMG_WEEKS   = '/__mockup/images/ios-04-weeks.png';
 const IMG_ICON    = '/__mockup/images/icon.png';
 const BG_VIDEO    = '/__mockup/bg-gym.mp4';
 
+const TOTAL_DURATION = SCENE_DURATIONS.reduce((a, b) => a + b, 0); // 30 000 ms
+
 export function IronSplitCommercial() {
   const [currentScene, setCurrentScene] = useState(0);
   const { play } = useTransitionSound();
   const isFirst = useRef(true);
+
+  // Recording state
+  const [recording, setRecording] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [showHint, setShowHint] = useState(false);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (isFirst.current) {
@@ -101,6 +111,75 @@ export function IronSplitCommercial() {
     }, SCENE_DURATIONS[currentScene]);
     return () => clearTimeout(timer);
   }, [currentScene]);
+
+  const startRecording = async () => {
+    try {
+      setShowHint(true);
+      const stream = await (navigator.mediaDevices as any).getDisplayMedia({
+        video: { frameRate: 30, width: 1920, height: 1080 },
+        audio: false,
+        preferCurrentTab: true,
+      } as any);
+      setShowHint(false);
+
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : 'video/webm';
+
+      chunksRef.current = [];
+      const recorder = new MediaRecorder(stream, { mimeType });
+      recorderRef.current = recorder;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      recorder.onstop = () => {
+        stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ironsplit-commercial.webm';
+        a.click();
+        URL.revokeObjectURL(url);
+        setRecording(false);
+        setCountdown(0);
+        if (countdownRef.current) clearInterval(countdownRef.current);
+      };
+
+      // Restart commercial from scene 0
+      isFirst.current = true;
+      setCurrentScene(0);
+
+      recorder.start(500);
+      setRecording(true);
+      const secs = Math.ceil(TOTAL_DURATION / 1000);
+      setCountdown(secs);
+
+      countdownRef.current = setInterval(() => {
+        setCountdown((c) => {
+          if (c <= 1) {
+            if (countdownRef.current) clearInterval(countdownRef.current);
+            return 0;
+          }
+          return c - 1;
+        });
+      }, 1000);
+
+      setTimeout(() => {
+        if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
+      }, TOTAL_DURATION + 500);
+
+    } catch (err) {
+      setShowHint(false);
+      setRecording(false);
+      console.error('Recording cancelled or failed:', err);
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
+  };
 
   return (
     <div
@@ -151,6 +230,78 @@ export function IronSplitCommercial() {
         {currentScene === 5 && <SceneOutro key="s5" icon={IMG_ICON} />}
       </AnimatePresence>
 
+      {/* Share-tab hint overlay */}
+      <AnimatePresence>
+        {showHint && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: 'absolute', inset: 0, zIndex: 100,
+              background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(6px)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2vw',
+            }}
+          >
+            <div style={{ fontSize: '5vw' }}>🎬</div>
+            <p style={{ color: WHITE, fontFamily: "'Anton', sans-serif", fontSize: '2.5vw', textAlign: 'center', maxWidth: '50vw', lineHeight: 1.4 }}>
+              In the dialog, choose <span style={{ color: AMBER }}>"This Tab"</span> then click <span style={{ color: AMBER }}>Share</span>
+            </p>
+            <p style={{ color: '#888', fontSize: '1.3vw' }}>
+              The commercial will restart and record automatically for 30 seconds
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Recording indicator + stop button */}
+      {recording && (
+        <div style={{
+          position: 'absolute', top: '2vw', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 60, display: 'flex', alignItems: 'center', gap: '1vw',
+          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
+          border: '1px solid #ef4444', borderRadius: '999px',
+          padding: '0.6vw 1.6vw',
+        }}>
+          <span style={{ width: '0.8vw', height: '0.8vw', borderRadius: '50%', background: '#ef4444', display: 'inline-block', animation: 'pulse 1s infinite' }} />
+          <span style={{ color: WHITE, fontFamily: "'Anton', sans-serif", fontSize: '1.3vw', letterSpacing: '0.1em' }}>
+            REC {countdown}s
+          </span>
+          <button
+            onClick={stopRecording}
+            style={{
+              marginLeft: '0.5vw', background: '#ef4444', border: 'none', color: WHITE,
+              fontFamily: "'Anton', sans-serif", fontSize: '1vw', letterSpacing: '0.08em',
+              padding: '0.3vw 0.9vw', borderRadius: '999px', cursor: 'pointer',
+            }}
+          >
+            STOP
+          </button>
+        </div>
+      )}
+
+      {/* Download button */}
+      {!recording && !showHint && (
+        <button
+          onClick={startRecording}
+          style={{
+            position: 'absolute', bottom: '3vw', left: '3vw', zIndex: 50,
+            display: 'flex', alignItems: 'center', gap: '0.7vw',
+            background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)',
+            border: `1px solid ${AMBER}88`, color: AMBER,
+            padding: '0.7vw 1.5vw', borderRadius: '999px',
+            fontSize: '1.2vw', fontFamily: "'Anton', sans-serif",
+            letterSpacing: '0.1em', cursor: 'pointer', transition: 'all 0.2s',
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" style={{ width: '1.5vw', height: '1.5vw' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          DOWNLOAD VIDEO
+        </button>
+      )}
+
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.2} }`}</style>
     </div>
   );
 }
