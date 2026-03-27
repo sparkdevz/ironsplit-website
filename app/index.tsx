@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Platform,
+  Linking,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -224,6 +225,20 @@ export default function HomeScreen() {
             <Text style={styles.clearBtnText}>Clear Week {week} Data</Text>
           </TouchableOpacity>
         )}
+        {/* Google Play button */}
+        <TouchableOpacity
+          style={styles.playBtn}
+          onPress={() => Linking.openURL("https://play.google.com/store/apps/details?id=com.ironsplit.app&pcampaignid=web_share")}
+          activeOpacity={0.8}
+        >
+          <View style={styles.playBtnInner}>
+            <Ionicons name="logo-google-playstore" size={20} color="#fff" />
+            <View style={styles.playBtnText}>
+              <Text style={styles.playBtnSub}>GET IT ON</Text>
+              <Text style={styles.playBtnMain}>Google Play</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
       </ScrollView>
       <AdBanner />
     </View>
@@ -349,4 +364,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#dc2626",
   },
   confirmDeleteText: { fontSize: 14, fontWeight: "700", color: "#fff" },
+  playBtn: {
+    marginHorizontal: 18,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    backgroundColor: "#01875f",
+    overflow: "hidden",
+  },
+  playBtnInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+  },
+  playBtnText: { flexDirection: "column" },
+  playBtnSub: { fontSize: 10, fontWeight: "600", color: "rgba(255,255,255,0.8)", letterSpacing: 0.5 },
+  playBtnMain: { fontSize: 17, fontWeight: "700", color: "#fff", marginTop: -1 },
 });
