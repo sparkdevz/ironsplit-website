@@ -543,24 +543,13 @@ function SceneOutro({ icon }: { icon: string }) {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 20, opacity: 0 }}
           transition={{ delay: 1.0, duration: 0.5, ease: 'easeOut' }}
-          style={{
-            marginTop: '2vw',
-            display: 'flex', alignItems: 'center', gap: '1.2vw',
-            background: DARK, border: '0.15vw solid rgba(255,255,255,0.15)',
-            padding: '1vw 2.2vw', borderRadius: '1.2vw',
-            textDecoration: 'none', boxShadow: '0 0.5vw 2vw rgba(0,0,0,0.4)',
-          }}
+          style={{ marginTop: '2vw', display: 'block', textDecoration: 'none' }}
         >
-          <svg style={{ width: '3vw', height: '3vw' }} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3.18 23.76c.34.18.74.18 1.1-.02l11.16-6.44-2.52-2.52-9.74 9z" fill="#EA4335"/>
-            <path d="M21.54 10.27c-.36-.2-.83-.2-1.2 0l-2.9 1.67-2.76-2.76 2.76-2.76 2.9 1.67c.37.2.83.2 1.2 0 .37-.2.46-.56.46-.94s-.09-.74-.46-.94L5.3.27C4.94.08 4.52.08 4.18.27c-.34.19-.46.54-.46.92v21.62c0 .38.12.73.46.92.17.1.35.14.54.14.19 0 .38-.05.56-.15l14.74-8.51c.37-.2.46-.56.46-.94s-.09-.74-.46-.94z" fill="#FBBC04"/>
-            <path d="M4.18.27C3.84.08 3.44.08 3.1.27c-.34.19-.46.54-.46.92v11.07l9.9-9.9L4.18.27z" fill="#4285F4"/>
-            <path d="M12.54 12.26L3.1 23.68c.17.08.36.1.54.1.19 0 .38-.05.56-.15l9.9-5.72-1.56-1.65z" fill="#34A853"/>
-          </svg>
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <span style={{ fontSize: '1vw', color: 'rgba(255,255,255,0.7)', fontFamily: 'sans-serif', letterSpacing: '0.05em' }}>GET IT ON</span>
-            <span style={{ fontSize: '2.2vw', color: WHITE, fontFamily: "'Anton', sans-serif", letterSpacing: '0.03em' }}>Google Play</span>
-          </div>
+          <img
+            src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+            alt="Get it on Google Play"
+            style={{ height: '6vw', width: 'auto', display: 'block' }}
+          />
         </motion.a>
       </div>
     </div>
