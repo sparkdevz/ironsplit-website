@@ -15,10 +15,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.alexrp8.ironsplit",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSUserTrackingUsageDescription": "This identifier will be used to show you personalised ads and help keep the app free.",
         "NSMicrophoneUsageDescription": "IronSplit does not use the microphone.",
         "SKAdNetworkItems": [
           { "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork" },
@@ -73,8 +72,7 @@
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-6293674677101068~9368465655",
-          "iosAppId": "ca-app-pub-6293674677101068~2470517835",
-          "userTrackingUsageDescription": "This identifier will be used to show you personalised ads and help keep the app free."
+          "iosAppId": "ca-app-pub-6293674677101068~2470517835"
         }
       ]
     ],
