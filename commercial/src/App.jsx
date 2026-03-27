@@ -439,7 +439,7 @@ function SceneOutro() {
           style={{ marginTop: '2vw', display: 'flex', gap: '1vw', alignItems: 'center' }}
         >
           <a
-            href="https://testflight.apple.com/join/caZVxQfZ"
+            href="https://testflight.apple.com/v1/invite/8d19370ee81e4069a82dd5eba5788ffd4274a53a55414437becd5255378365d4192ffacec?ct=65NL8PL4TX&advp=10000&platform=ios"
             target="_blank"
             rel="noopener noreferrer"
             style={{ display: 'block', textDecoration: 'none' }}
