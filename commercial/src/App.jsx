@@ -112,7 +112,7 @@ function SceneIntro() {
         transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
         className="font-display text-[10vw] text-brand-white uppercase tracking-tight leading-none"
       >
-        Iron<span className="text-brand-amber">Split</span>
+        <span className="text-brand-amber">IRON</span>SPLIT
       </motion.h1>
       <motion.div
         initial={{ opacity: 0, width: 0 }}
@@ -428,7 +428,7 @@ function SceneOutro() {
           className="flex items-center gap-[2vw] bg-brand-dark px-[3vw] py-[1.5vw] rounded-full shadow-2xl"
         >
           <img src={iconApp} className="w-[4vw] h-[4vw] rounded-[0.8vw]" alt="IronSplit" />
-          <span className="font-display text-[3.5vw] text-white tracking-wide uppercase">IronSplit</span>
+          <span className="font-display text-[3.5vw] tracking-wide"><span className="text-brand-amber">IRON</span><span className="text-white">SPLIT</span></span>
         </motion.div>
 
         <motion.div

@@ -154,7 +154,7 @@ function SceneIntro({ icon }: { icon: string }) {
           transition={{ delay: 0.3, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           style={{ fontFamily: "'Anton', sans-serif", fontSize: '10vw', color: WHITE, letterSpacing: '-0.02em', lineHeight: 1 }}
         >
-          IRONSPLIT
+          <span style={{ color: AMBER }}>IRON</span>SPLIT
         </motion.h1>
       </motion.div>
       <motion.p
@@ -383,7 +383,7 @@ function SceneOutro({ icon }: { icon: string }) {
           style={{ background: DARK }}
         >
           <img src={icon} style={{ width: '4vw', height: '4vw', borderRadius: '0.8vw' }} alt="IronSplit" />
-          <span style={{ fontFamily: "'Anton', sans-serif", fontSize: '3.5vw', color: WHITE, letterSpacing: '0.05em' }}>IronSplit</span>
+          <span style={{ fontFamily: "'Anton', sans-serif", fontSize: '3.5vw', letterSpacing: '0.05em' }}><span style={{ color: AMBER }}>IRON</span><span style={{ color: WHITE }}>SPLIT</span></span>
         </motion.div>
 
         <motion.div
