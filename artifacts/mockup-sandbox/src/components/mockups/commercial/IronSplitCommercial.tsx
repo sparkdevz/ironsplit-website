@@ -1,122 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// ─── Audio Engine ──────────────────────────────────────────────────────────────
-const BPM = 128;
-const BEAT = 60 / BPM;
-const BAR = BEAT * 4;
-
-function createKick(ctx: AudioContext, t: number) {
-  const osc = ctx.createOscillator();
-  const g = ctx.createGain();
-  osc.connect(g); g.connect(ctx.destination);
-  osc.frequency.setValueAtTime(160, t);
-  osc.frequency.exponentialRampToValueAtTime(35, t + 0.18);
-  g.gain.setValueAtTime(0.9, t);
-  g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-  osc.start(t); osc.stop(t + 0.4);
-}
-
-function createSnare(ctx: AudioContext, t: number) {
-  const len = 0.18;
-  const buf = ctx.createBuffer(1, ctx.sampleRate * len, ctx.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-  const noise = ctx.createBufferSource(); noise.buffer = buf;
-  const ng = ctx.createGain();
-  ng.gain.setValueAtTime(0.45, t); ng.gain.exponentialRampToValueAtTime(0.001, t + len);
-  const flt = ctx.createBiquadFilter(); flt.type = 'bandpass'; flt.frequency.value = 2000; flt.Q.value = 0.8;
-  noise.connect(flt); flt.connect(ng); ng.connect(ctx.destination);
-  const osc = ctx.createOscillator(); const og = ctx.createGain();
-  osc.frequency.value = 200; og.gain.setValueAtTime(0.28, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
-  osc.connect(og); og.connect(ctx.destination);
-  noise.start(t); osc.start(t); osc.stop(t + 0.1); noise.stop(t + len);
-}
-
-function createHihat(ctx: AudioContext, t: number, open = false) {
-  const len = open ? 0.3 : 0.07;
-  const buf = ctx.createBuffer(1, ctx.sampleRate * len, ctx.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-  const noise = ctx.createBufferSource(); noise.buffer = buf;
-  const flt = ctx.createBiquadFilter(); flt.type = 'highpass'; flt.frequency.value = 9000;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(open ? 0.25 : 0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t + len);
-  noise.connect(flt); flt.connect(g); g.connect(ctx.destination);
-  noise.start(t); noise.stop(t + len);
-}
-
-function createBass(ctx: AudioContext, t: number, freq = 55) {
-  const osc = ctx.createOscillator(); const g = ctx.createGain();
-  osc.type = 'sine'; osc.frequency.value = freq;
-  g.gain.setValueAtTime(0.55, t); g.gain.exponentialRampToValueAtTime(0.001, t + BEAT * 0.6);
-  osc.connect(g); g.connect(ctx.destination);
-  osc.start(t); osc.stop(t + BEAT * 0.65);
-}
-
-function createSynth(ctx: AudioContext, t: number, freq: number) {
-  const osc = ctx.createOscillator(); const g = ctx.createGain();
-  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 800; lp.Q.value = 2;
-  osc.type = 'sawtooth'; osc.frequency.value = freq;
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.1, t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t + BEAT * 0.45);
-  osc.connect(lp); lp.connect(g); g.connect(ctx.destination);
-  osc.start(t); osc.stop(t + BEAT * 0.5);
-}
-
-const RIFF = [110, 146.8, 164.8, 196, 146.8, 110, 130.8, 164.8];
-const RIFF_T = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5].map(b => b * BEAT);
-
-function scheduleBar(ctx: AudioContext, s: number) {
-  createKick(ctx, s); createKick(ctx, s + BEAT * 2);
-  createSnare(ctx, s + BEAT); createSnare(ctx, s + BEAT * 3);
-  for (let i = 0; i < 8; i++) createHihat(ctx, s + i * (BEAT / 2), i % 4 === 2);
-  createBass(ctx, s, 55); createBass(ctx, s + BEAT, 55);
-  createBass(ctx, s + BEAT * 2, 73.4); createBass(ctx, s + BEAT * 3, 55);
-  RIFF.forEach((freq, i) => createSynth(ctx, s + RIFF_T[i], freq));
-}
-
-function useAudioEngine() {
-  const ctxRef = useRef<AudioContext | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const mutedRef = useRef(false);
-  const nextBarRef = useRef(0);
-
-  const start = useCallback(() => {
-    if (ctxRef.current) return;
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    ctxRef.current = ctx;
-    nextBarRef.current = ctx.currentTime + 0.05;
-    const schedule = () => {
-      const lookahead = 0.25;
-      while (nextBarRef.current < ctx.currentTime + lookahead) {
-        if (!mutedRef.current) scheduleBar(ctx, nextBarRef.current);
-        nextBarRef.current += BAR;
-      }
-    };
-    schedule();
-    timerRef.current = setInterval(schedule, 100);
-  }, []);
-
-  const setMuted = useCallback((m: boolean) => { mutedRef.current = m; }, []);
-
-  useEffect(() => {
-    const go = () => { if (!ctxRef.current) start(); };
-    document.addEventListener('click', go, { once: true });
-    document.addEventListener('keydown', go, { once: true });
-    const t = setTimeout(() => start(), 300);
-    return () => {
-      clearTimeout(t);
-      document.removeEventListener('click', go);
-      document.removeEventListener('keydown', go);
-      if (timerRef.current) clearInterval(timerRef.current);
-      ctxRef.current?.close();
-      ctxRef.current = null;
-    };
-  }, [start]);
-
-  return { setMuted };
-}
-// ──────────────────────────────────────────────────────────────────────────────
 
 const AMBER = '#f59e0b';
 const DARK = '#1a1a1a';
@@ -140,8 +23,6 @@ const BG_VIDEO    = '/__mockup/bg-gym.mp4';
 
 export function IronSplitCommercial() {
   const [currentScene, setCurrentScene] = useState(0);
-  const [muted, setMuted] = useState(false);
-  const { setMuted: setAudioMuted } = useAudioEngine();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -149,12 +30,6 @@ export function IronSplitCommercial() {
     }, SCENE_DURATIONS[currentScene]);
     return () => clearTimeout(timer);
   }, [currentScene]);
-
-  const toggleMute = () => {
-    const next = !muted;
-    setMuted(next);
-    setAudioMuted(next);
-  };
 
   return (
     <div
@@ -205,39 +80,6 @@ export function IronSplitCommercial() {
         {currentScene === 5 && <SceneOutro key="s5" icon={IMG_ICON} />}
       </AnimatePresence>
 
-      {/* Mute button */}
-      <button
-        onClick={toggleMute}
-        style={{
-          position: 'absolute', bottom: '3vw', right: '3vw', zIndex: 50,
-          display: 'flex', alignItems: 'center', gap: '0.7vw',
-          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
-          border: `1px solid ${muted ? '#555' : AMBER + '88'}`,
-          color: muted ? '#888' : AMBER,
-          padding: '0.7vw 1.4vw', borderRadius: '999px',
-          fontSize: '1.2vw', fontFamily: "'Anton', sans-serif",
-          letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer',
-          transition: 'all 0.2s',
-        }}
-      >
-        {muted ? (
-          <>
-            <svg xmlns="http://www.w3.org/2000/svg" style={{ width: '1.6vw', height: '1.6vw' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" />
-            </svg>
-            Muted
-          </>
-        ) : (
-          <>
-            <svg xmlns="http://www.w3.org/2000/svg" style={{ width: '1.6vw', height: '1.6vw' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-            </svg>
-            Sound On
-          </>
-        )}
-      </button>
     </div>
   );
 }

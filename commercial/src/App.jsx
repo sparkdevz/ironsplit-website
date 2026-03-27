@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAudioEngine } from './useAudioEngine';
 
 // Importing assets
 import imgHome from '../../store-assets/screenshots/ios-01-home.png';
@@ -20,21 +19,12 @@ const SCENE_DURATIONS = [
 
 export default function App() {
   const [currentScene, setCurrentScene] = useState(0);
-  const [muted, setMuted] = useState(false);
-  const { setMuted: setAudioMuted } = useAudioEngine();
-
   useEffect(() => {
     let timer = setTimeout(() => {
       setCurrentScene((prev) => (prev + 1) % SCENE_DURATIONS.length);
     }, SCENE_DURATIONS[currentScene]);
     return () => clearTimeout(timer);
   }, [currentScene]);
-
-  const toggleMute = () => {
-    const next = !muted;
-    setMuted(next);
-    setAudioMuted(next);
-  };
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-brand-dark flex items-center justify-center font-body">
@@ -82,32 +72,6 @@ export default function App() {
         {currentScene === 5 && <SceneOutro key="scene-5" />}
       </AnimatePresence>
 
-      {/* Mute / Unmute button */}
-      <button
-        onClick={toggleMute}
-        className="absolute bottom-[3vw] right-[3vw] z-50 flex items-center gap-[0.8vw] bg-black/60 backdrop-blur-md border border-zinc-700 hover:border-brand-amber/60 text-zinc-300 hover:text-brand-amber transition-all px-[1.5vw] py-[0.8vw] rounded-full text-[1.4vw] font-display tracking-widest uppercase"
-        title={muted ? 'Unmute' : 'Mute'}
-      >
-        {muted ? (
-          <>
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-[1.8vw] h-[1.8vw]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <line x1="23" y1="9" x2="17" y2="15" />
-              <line x1="17" y1="9" x2="23" y2="15" />
-            </svg>
-            Muted
-          </>
-        ) : (
-          <>
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-[1.8vw] h-[1.8vw]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-              <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-            </svg>
-            Sound On
-          </>
-        )}
-      </button>
     </div>
   );
 }
