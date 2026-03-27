@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Importing assets
@@ -21,73 +21,12 @@ const TOTAL_DURATION = SCENE_DURATIONS.reduce((a, b) => a + b, 0);
 export default function App() {
   const [currentScene, setCurrentScene] = useState(0);
 
-  const [recording, setRecording] = useState(false);
-  const [countdown, setCountdown] = useState(0);
-  const [showHint, setShowHint] = useState(false);
-  const recorderRef = useRef(null);
-  const chunksRef = useRef([]);
-  const countdownRef = useRef(null);
-
   useEffect(() => {
     let timer = setTimeout(() => {
       setCurrentScene((prev) => (prev + 1) % SCENE_DURATIONS.length);
     }, SCENE_DURATIONS[currentScene]);
     return () => clearTimeout(timer);
   }, [currentScene]);
-
-  const startRecording = async () => {
-    try {
-      setShowHint(true);
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { frameRate: 30, width: 1920, height: 1080 },
-        audio: false,
-        preferCurrentTab: true,
-      });
-      setShowHint(false);
-
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-        ? 'video/webm;codecs=vp9' : 'video/webm';
-      chunksRef.current = [];
-      const recorder = new MediaRecorder(stream, { mimeType });
-      recorderRef.current = recorder;
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-      recorder.onstop = () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'ironsplit-commercial.webm'; a.click();
-        URL.revokeObjectURL(url);
-        setRecording(false); setCountdown(0);
-        if (countdownRef.current) clearInterval(countdownRef.current);
-      };
-
-      isFirst.current = true;
-      setCurrentScene(0);
-      recorder.start(500);
-      setRecording(true);
-      const secs = Math.ceil(TOTAL_DURATION / 1000);
-      setCountdown(secs);
-      countdownRef.current = setInterval(() => {
-        setCountdown((c) => {
-          if (c <= 1) { clearInterval(countdownRef.current); return 0; }
-          return c - 1;
-        });
-      }, 1000);
-      setTimeout(() => {
-        if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
-      }, TOTAL_DURATION + 500);
-    } catch (err) {
-      setShowHint(false); setRecording(false);
-    }
-  };
-
-  const stopRecording = () => {
-    if (recorderRef.current?.state === 'recording') recorderRef.current.stop();
-  };
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-brand-dark flex items-center justify-center font-body">
@@ -135,50 +74,19 @@ export default function App() {
         {currentScene === 5 && <SceneOutro key="scene-5" />}
       </AnimatePresence>
 
-      {/* Share-tab hint overlay */}
-      <AnimatePresence>
-        {showHint && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[100] flex flex-col items-center justify-center gap-[2vw]"
-            style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)' }}
-          >
-            <div className="text-[5vw]">🎬</div>
-            <p className="font-display text-[2.2vw] text-center max-w-[50vw] leading-relaxed text-white">
-              In the dialog, choose <span className="text-brand-amber">"This Tab"</span> then click <span className="text-brand-amber">Share</span>
-            </p>
-            <p className="text-zinc-500 text-[1.2vw]">The commercial will restart and record automatically for 30 seconds</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Recording indicator */}
-      {recording && (
-        <div className="absolute top-[2vw] left-1/2 -translate-x-1/2 z-[60] flex items-center gap-[1vw] px-[1.6vw] py-[0.6vw] rounded-full"
-          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', border: '1px solid #ef4444' }}>
-          <span className="w-[0.8vw] h-[0.8vw] rounded-full bg-red-500 inline-block animate-pulse" />
-          <span className="font-display text-[1.3vw] tracking-widest text-white">REC {countdown}s</span>
-          <button onClick={stopRecording}
-            className="ml-[0.5vw] bg-red-500 text-white font-display text-[1vw] tracking-wider px-[0.9vw] py-[0.3vw] rounded-full cursor-pointer border-none">
-            STOP
-          </button>
-        </div>
-      )}
-
-      {/* Download button */}
-      {!recording && !showHint && (
-        <button onClick={startRecording}
-          className="absolute bottom-[3vw] left-[3vw] z-50 flex items-center gap-[0.7vw] font-display text-[1.2vw] tracking-widest uppercase cursor-pointer transition-all"
-          style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)', border: '1px solid rgba(245,158,11,0.5)', color: '#f59e0b', padding: '0.7vw 1.5vw', borderRadius: '999px' }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" style={{ width: '1.5vw', height: '1.5vw' }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          Download Video
-        </button>
-      )}
+      {/* TestFlight button */}
+      <a
+        href="https://testflight.apple.com/join/caZVxQfZ"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute bottom-[3vw] left-[3vw] z-50 flex items-center gap-[0.8vw] font-display text-[1.2vw] tracking-wider uppercase no-underline transition-all"
+        style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)', border: '1px solid rgba(245,158,11,0.5)', color: '#ffffff', padding: '0.7vw 1.5vw', borderRadius: '999px', textDecoration: 'none' }}
+      >
+        <svg style={{ width: '1.5vw', height: '1.5vw', flexShrink: 0 }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        GET ON APP STORE
+      </a>
     </div>
   );
 }
