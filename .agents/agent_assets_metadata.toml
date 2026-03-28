@@ -60,3 +60,9 @@ id = "wfJXqhM2AIo_mHFgpyqQx"
 uri = "file://store-assets/ironsplit-commercial.mp4"
 type = "video"
 title = "IronSplit Commercial (MP4, 1280×720)"
+
+[[outputs]]
+id = "gA8e0cxa8nIGkvch0AtMR"
+uri = "file://assets/icon.png"
+type = "image"
+title = "IronSplit App Icon"
