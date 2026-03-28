@@ -47,7 +47,7 @@
     },
     "android": {
       "package": "com.ironsplit.app",
-      "versionCode": 5,
+      "versionCode": 6,
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundColor": "#1a1a1a"
