@@ -108,3 +108,33 @@ id = "DFBCcUto_iX3v-ggyTa6T"
 uri = "file://store-assets/screenshot-05-workout-day4.jpg"
 type = "image"
 title = "Screenshot 5 — Day 4 Lower Body Hinge"
+
+[[outputs]]
+id = "nBZpQ0NHIwDz9q7Qv58Pc"
+uri = "file://store-assets/tablet-10/screenshot-01-home-10in.jpg"
+type = "image"
+title = "10-inch — Home / Week Overview"
+
+[[outputs]]
+id = "2UlFcVCmOK971yuP5nXAV"
+uri = "file://store-assets/tablet-10/screenshot-02-workout-day1-10in.jpg"
+type = "image"
+title = "10-inch — Day 1 Upper Body Push"
+
+[[outputs]]
+id = "psN9RjWkN6b1KLc6TmzJO"
+uri = "file://store-assets/tablet-10/screenshot-03-workout-day2-10in.jpg"
+type = "image"
+title = "10-inch — Day 2 Lower Body Quads"
+
+[[outputs]]
+id = "n6NmkUATxHpXoAaKPky6W"
+uri = "file://store-assets/tablet-10/screenshot-04-workout-day3-10in.jpg"
+type = "image"
+title = "10-inch — Day 3 Upper Body Pull"
+
+[[outputs]]
+id = "b8hCmfzIXhiiAToNb0l6s"
+uri = "file://store-assets/tablet-10/screenshot-05-workout-day4-10in.jpg"
+type = "image"
+title = "10-inch — Day 4 Lower Body Hinge"
