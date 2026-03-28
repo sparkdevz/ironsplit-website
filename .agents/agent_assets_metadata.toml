@@ -72,3 +72,9 @@ id = "c8e0HE_Q05OQNpXp9hiUA"
 uri = "file://assets/icon-512.png"
 type = "image"
 title = "IronSplit Icon — 512×512 for Google Play"
+
+[[outputs]]
+id = "lvbmET7H_FqmxTUgT-Ecf"
+uri = "file://assets/feature-graphic.png"
+type = "image"
+title = "IronSplit Feature Graphic — 1024×500 for Google Play"
