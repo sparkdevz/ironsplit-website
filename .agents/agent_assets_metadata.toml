@@ -78,3 +78,33 @@ id = "lvbmET7H_FqmxTUgT-Ecf"
 uri = "file://assets/feature-graphic.png"
 type = "image"
 title = "IronSplit Feature Graphic — 1024×500 for Google Play"
+
+[[outputs]]
+id = "A0FyaAD3I4iQXf8MrdWuf"
+uri = "file://store-assets/screenshot-01-home.jpg"
+type = "image"
+title = "Screenshot 1 — Home / Week Overview"
+
+[[outputs]]
+id = "-mWtFlL9pqi8pSpNLHvXI"
+uri = "file://store-assets/screenshot-02-workout-day1.jpg"
+type = "image"
+title = "Screenshot 2 — Day 1 Upper Body Push"
+
+[[outputs]]
+id = "yxBabTCZPwBdiye_KAPH6"
+uri = "file://store-assets/screenshot-03-workout-day2.jpg"
+type = "image"
+title = "Screenshot 3 — Day 2 Lower Body Quads"
+
+[[outputs]]
+id = "E8-00CMQeOLwxLGYpdbmS"
+uri = "file://store-assets/screenshot-04-workout-day3.jpg"
+type = "image"
+title = "Screenshot 4 — Day 3 Upper Body Pull"
+
+[[outputs]]
+id = "DFBCcUto_iX3v-ggyTa6T"
+uri = "file://store-assets/screenshot-05-workout-day4.jpg"
+type = "image"
+title = "Screenshot 5 — Day 4 Lower Body Hinge"
