@@ -46,7 +46,7 @@
       }
     },
     "android": {
-      "package": "com.ironsplit.app",
+      "package": "com.alexrp8.ironsplit",
       "versionCode": 6,
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
