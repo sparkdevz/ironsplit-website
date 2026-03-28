@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.alexrp8.ironsplit",
-      "buildNumber": "8",
+      "buildNumber": "9",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSMicrophoneUsageDescription": "IronSplit does not use the microphone.",
@@ -75,7 +75,8 @@
           "androidAppId": "ca-app-pub-6293674677101068~9368465655",
           "iosAppId": "ca-app-pub-6293674677101068~2470517835"
         }
-      ]
+      ],
+      "./plugins/remove-background-audio"
     ],
     "extra": {
       "router": {},
