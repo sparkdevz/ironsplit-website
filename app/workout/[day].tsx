@@ -15,7 +15,7 @@ import { createAudioPlayer } from "expo-audio";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DAYS, DAY_COLORS, DayKey, Exercise } from "@/constants/workoutData";
-import { useWorkout, SetData } from "@/context/WorkoutContext";
+import { useWorkout, SetData, WeekHistory } from "@/context/WorkoutContext";
 import { getExerciseImageUri } from "@/hooks/useExerciseImage";
 import { ThemeColors } from "@/constants/theme";
 import AdBanner from "@/components/AdBanner";
@@ -209,7 +209,7 @@ const rtStyles = StyleSheet.create({
 export default function WorkoutDayScreen() {
   const { day } = useLocalSearchParams<{ day: string }>();
   const insets = useSafeAreaInsets();
-  const { week, unit, getSessionData, saveSessionData, getSwap, saveSwap, resetSwap, reloadTrigger, theme } = useWorkout();
+  const { week, unit, getSessionData, saveSessionData, getSwap, saveSwap, resetSwap, getHistoryData, reloadTrigger, theme } = useWorkout();
 
   const dayKey = day as DayKey;
   const dayData = DAYS[dayKey];
@@ -397,6 +397,8 @@ export default function WorkoutDayScreen() {
                 savedThisSession={state?.savedThisSession ?? false}
                 prevData={prevData}
                 currData={currData}
+                history={getHistoryData(dayKey, exIndex)}
+                currentWeek={week}
                 unit={unit}
                 colors={colors}
                 theme={theme}
@@ -419,6 +421,108 @@ export default function WorkoutDayScreen() {
   );
 }
 
+// ── Progress Chart ─────────────────────────────────────────────────────────
+const CHART_H = 80;
+
+function avgReps(sets: SetData[]): number {
+  const vals = sets.map((s) => parseFloat(s.reps)).filter((v) => !isNaN(v) && v > 0);
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+}
+
+function avgWeight(sets: SetData[]): number {
+  const vals = sets.map((s) => parseFloat(s.weight)).filter((v) => !isNaN(v) && v > 0);
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+}
+
+interface MiniBarChartProps {
+  label: string;
+  data: { week: number; value: number }[];
+  accentColor: string;
+  theme: ThemeColors;
+  unit?: string;
+}
+
+function MiniBarChart({ label, data, accentColor, theme, unit }: MiniBarChartProps) {
+  const filled = data.filter((d) => d.value > 0);
+  if (filled.length === 0) return null;
+  const maxVal = Math.max(...filled.map((d) => d.value));
+  return (
+    <View style={{ flex: 1 }}>
+      <Text style={{ fontSize: 9, fontWeight: "800", color: theme.textFaint, letterSpacing: 0.5, marginBottom: 6, textAlign: "center" }}>
+        {label}{unit ? ` (${unit})` : ""}
+      </Text>
+      <View style={{ height: CHART_H, flexDirection: "row", alignItems: "flex-end", gap: 3 }}>
+        {data.map((d) => {
+          const barH = maxVal > 0 ? Math.max(4, (d.value / maxVal) * CHART_H) : 4;
+          const isEmpty = d.value === 0;
+          return (
+            <View key={d.week} style={{ flex: 1, alignItems: "center", gap: 3 }}>
+              {!isEmpty && (
+                <Text style={{ fontSize: 7, fontWeight: "700", color: accentColor }}>
+                  {d.value % 1 === 0 ? d.value : d.value.toFixed(1)}
+                </Text>
+              )}
+              <View
+                style={{
+                  width: "100%",
+                  height: isEmpty ? 3 : barH,
+                  borderRadius: 3,
+                  backgroundColor: isEmpty ? theme.cardBorder : accentColor,
+                  opacity: isEmpty ? 0.3 : 1,
+                }}
+              />
+              <Text style={{ fontSize: 7, fontWeight: "700", color: theme.textFaint }}>W{d.week}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+interface ProgressChartProps {
+  history: WeekHistory[];
+  currentWeek: number;
+  accentColor: string;
+  theme: ThemeColors;
+  unit: string;
+}
+
+function ProgressChart({ history, currentWeek, accentColor, theme, unit }: ProgressChartProps) {
+  if (history.length === 0) {
+    return (
+      <View style={{ marginTop: 16, padding: 12, borderRadius: 10, backgroundColor: theme.cardAlt, borderWidth: 1, borderColor: theme.cardBorder, alignItems: "center" }}>
+        <Text style={{ fontSize: 11, color: theme.textFaint }}>📈 No history yet — save a session to start tracking progress</Text>
+      </View>
+    );
+  }
+
+  const weeks = Array.from({ length: currentWeek }, (_, i) => i + 1);
+  const repsData = weeks.map((w) => {
+    const entry = history.find((h) => h.week === w);
+    return { week: w, value: entry ? Math.round(avgReps(entry.sets) * 10) / 10 : 0 };
+  });
+  const weightData = weeks.map((w) => {
+    const entry = history.find((h) => h.week === w);
+    return { week: w, value: entry ? Math.round(avgWeight(entry.sets) * 10) / 10 : 0 };
+  });
+  const hasWeight = weightData.some((d) => d.value > 0);
+
+  return (
+    <View style={{ marginTop: 16, padding: 12, borderRadius: 10, backgroundColor: theme.cardAlt, borderWidth: 1, borderColor: theme.cardBorder }}>
+      <Text style={{ fontSize: 10, fontWeight: "800", color: theme.textFaint, letterSpacing: 1, marginBottom: 10, textAlign: "center" }}>
+        PROGRESS
+      </Text>
+      <View style={{ flexDirection: "row", gap: 16 }}>
+        <MiniBarChart label="AVG REPS" data={repsData} accentColor={accentColor} theme={theme} />
+        {hasWeight && (
+          <MiniBarChart label="AVG WEIGHT" data={weightData} accentColor="#f59e0b" theme={theme} unit={unit} />
+        )}
+      </View>
+    </View>
+  );
+}
+
 // ── ExerciseCard ───────────────────────────────────────────────────────────
 interface ExerciseCardProps {
   ex: Exercise;
@@ -431,6 +535,8 @@ interface ExerciseCardProps {
   savedThisSession: boolean;
   prevData: SetData[];
   currData: SetData[];
+  history: WeekHistory[];
+  currentWeek: number;
   unit: string;
   colors: { primary: string; light: string; tag: string; tagText: string };
   theme: ThemeColors;
@@ -442,7 +548,7 @@ interface ExerciseCardProps {
 
 function ExerciseCard({
   ex, exIndex, activeName, activeDetail, activeTab, isSwapped, swapIdx,
-  savedThisSession, prevData, currData, unit, colors, theme,
+  savedThisSession, prevData, currData, history, currentWeek, unit, colors, theme,
   onSetTab, onSetSwap, onUpdateInput, onSave,
 }: ExerciseCardProps) {
   return (
@@ -568,6 +674,13 @@ function ExerciseCard({
           <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.primary }]} onPress={onSave}>
             <Text style={styles.saveBtnText}>{savedThisSession ? "✓ Saved!" : "Save Session"}</Text>
           </TouchableOpacity>
+          <ProgressChart
+            history={history}
+            currentWeek={currentWeek}
+            accentColor={colors.primary}
+            theme={theme}
+            unit={unit}
+          />
         </View>
       )}
 

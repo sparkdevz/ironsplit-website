@@ -7,6 +7,11 @@ export interface SetData {
   reps: string;
 }
 
+export interface WeekHistory {
+  week: number;
+  sets: SetData[];
+}
+
 interface WorkoutContextType {
   week: number;
   setWeek: (w: number) => void;
@@ -21,6 +26,7 @@ interface WorkoutContextType {
   getSwap: (day: string, exIndex: number) => number;
   saveSwap: (day: string, exIndex: number, varIndex: number) => Promise<void>;
   resetSwap: (day: string, exIndex: number) => Promise<void>;
+  getHistoryData: (day: string, exIndex: number) => WeekHistory[];
   reloadTrigger: number;
 }
 
@@ -139,6 +145,20 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(key, String(varIndex));
   }, []);
 
+  const getHistoryData = useCallback((day: string, exIndex: number): WeekHistory[] => {
+    const prefix = `wl_${day}_${exIndex}_w`;
+    const result: WeekHistory[] = [];
+    for (const key of Object.keys(sessionCache)) {
+      if (key.startsWith(prefix)) {
+        const weekNum = parseInt(key.slice(prefix.length));
+        if (!isNaN(weekNum)) {
+          result.push({ week: weekNum, sets: sessionCache[key] ?? [] });
+        }
+      }
+    }
+    return result.sort((a, b) => a.week - b.week);
+  }, [sessionCache]);
+
   const resetSwap = useCallback(async (day: string, exIndex: number) => {
     const key = `wl_swap_${day}_${exIndex}`;
     setSwapCache((prev) => {
@@ -179,6 +199,7 @@ export function WorkoutProvider({ children }: { children: React.ReactNode }) {
         getSwap,
         saveSwap,
         resetSwap,
+        getHistoryData,
         reloadTrigger,
       }}
     >
