@@ -10,7 +10,9 @@ import {
   Platform,
   Image,
   Vibration,
+  LayoutChangeEvent,
 } from "react-native";
+import Svg, { Line, Polyline, Circle, Text as SvgText, Defs, LinearGradient, Stop, Rect } from "react-native-svg";
 import { createAudioPlayer } from "expo-audio";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -422,63 +424,18 @@ export default function WorkoutDayScreen() {
 }
 
 // ── Progress Chart ─────────────────────────────────────────────────────────
-const CHART_H = 80;
-
 function avgReps(sets: SetData[]): number {
   const vals = sets.map((s) => parseFloat(s.reps)).filter((v) => !isNaN(v) && v > 0);
-  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+  return vals.length ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : 0;
 }
 
 function avgWeight(sets: SetData[]): number {
   const vals = sets.map((s) => parseFloat(s.weight)).filter((v) => !isNaN(v) && v > 0);
-  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+  return vals.length ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : 0;
 }
 
-interface MiniBarChartProps {
-  label: string;
-  data: { week: number; value: number }[];
-  accentColor: string;
-  theme: ThemeColors;
-  unit?: string;
-}
-
-function MiniBarChart({ label, data, accentColor, theme, unit }: MiniBarChartProps) {
-  const filled = data.filter((d) => d.value > 0);
-  if (filled.length === 0) return null;
-  const maxVal = Math.max(...filled.map((d) => d.value));
-  return (
-    <View style={{ flex: 1 }}>
-      <Text style={{ fontSize: 9, fontWeight: "800", color: theme.textFaint, letterSpacing: 0.5, marginBottom: 6, textAlign: "center" }}>
-        {label}{unit ? ` (${unit})` : ""}
-      </Text>
-      <View style={{ height: CHART_H, flexDirection: "row", alignItems: "flex-end", gap: 3 }}>
-        {data.map((d) => {
-          const barH = maxVal > 0 ? Math.max(4, (d.value / maxVal) * CHART_H) : 4;
-          const isEmpty = d.value === 0;
-          return (
-            <View key={d.week} style={{ flex: 1, alignItems: "center", gap: 3 }}>
-              {!isEmpty && (
-                <Text style={{ fontSize: 7, fontWeight: "700", color: accentColor }}>
-                  {d.value % 1 === 0 ? d.value : d.value.toFixed(1)}
-                </Text>
-              )}
-              <View
-                style={{
-                  width: "100%",
-                  height: isEmpty ? 3 : barH,
-                  borderRadius: 3,
-                  backgroundColor: isEmpty ? theme.cardBorder : accentColor,
-                  opacity: isEmpty ? 0.3 : 1,
-                }}
-              />
-              <Text style={{ fontSize: 7, fontWeight: "700", color: theme.textFaint }}>W{d.week}</Text>
-            </View>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
+const REPS_COLOR = "#ef4444";
+const WEIGHT_COLOR = "#60a5fa";
 
 interface ProgressChartProps {
   history: WeekHistory[];
@@ -489,6 +446,8 @@ interface ProgressChartProps {
 }
 
 function ProgressChart({ history, currentWeek, accentColor, theme, unit }: ProgressChartProps) {
+  const [svgWidth, setSvgWidth] = useState(300);
+
   if (history.length === 0) {
     return (
       <View style={{ marginTop: 16, padding: 12, borderRadius: 10, backgroundColor: theme.cardAlt, borderWidth: 1, borderColor: theme.cardBorder, alignItems: "center" }}>
@@ -497,26 +456,160 @@ function ProgressChart({ history, currentWeek, accentColor, theme, unit }: Progr
     );
   }
 
+  // Build week-indexed data arrays
   const weeks = Array.from({ length: currentWeek }, (_, i) => i + 1);
   const repsData = weeks.map((w) => {
-    const entry = history.find((h) => h.week === w);
-    return { week: w, value: entry ? Math.round(avgReps(entry.sets) * 10) / 10 : 0 };
+    const e = history.find((h) => h.week === w);
+    return e ? avgReps(e.sets) : null;
   });
   const weightData = weeks.map((w) => {
-    const entry = history.find((h) => h.week === w);
-    return { week: w, value: entry ? Math.round(avgWeight(entry.sets) * 10) / 10 : 0 };
+    const e = history.find((h) => h.week === w);
+    return e ? avgWeight(e.sets) : null;
   });
-  const hasWeight = weightData.some((d) => d.value > 0);
+  const hasWeight = weightData.some((v) => v !== null && v > 0);
+
+  // SVG dimensions & margins
+  const H = 180;
+  const padL = 38;  // room for Y-axis labels
+  const padR = 12;
+  const padT = 18;
+  const padB = 36;  // room for X-axis labels + "week" label
+  const plotW = svgWidth - padL - padR;
+  const plotH = H - padT - padB;
+
+  // Compute Y range — show both series on same axis, range 0 → ceiling
+  const allVals = [
+    ...repsData.filter((v): v is number => v !== null && v > 0),
+    ...weightData.filter((v): v is number => v !== null && v > 0),
+  ];
+  const dataMax = allVals.length ? Math.max(...allVals) : 10;
+  // Nice ceiling: round up to nearest 5 or 10
+  const yMax = Math.ceil(dataMax / 5) * 5 || 10;
+  const yMin = 0;
+
+  // Coordinate helpers
+  const xPos = (i: number) =>
+    weeks.length < 2 ? padL + plotW / 2 : padL + (i / (weeks.length - 1)) * plotW;
+  const yPos = (val: number) =>
+    padT + plotH - ((val - yMin) / (yMax - yMin)) * plotH;
+
+  // Build polyline points strings (skip nulls / zeros)
+  function buildPoints(data: (number | null)[]): string {
+    return data
+      .map((v, i) => (v !== null && v > 0 ? `${xPos(i)},${yPos(v)}` : null))
+      .filter(Boolean)
+      .join(" ");
+  }
+  const repsPoints = buildPoints(repsData);
+  const weightPoints = buildPoints(weightData);
+
+  // Y-axis tick values
+  const yTicks = Array.from({ length: 5 }, (_, i) => Math.round((yMax / 4) * i));
 
   return (
-    <View style={{ marginTop: 16, padding: 12, borderRadius: 10, backgroundColor: theme.cardAlt, borderWidth: 1, borderColor: theme.cardBorder }}>
-      <Text style={{ fontSize: 10, fontWeight: "800", color: theme.textFaint, letterSpacing: 1, marginBottom: 10, textAlign: "center" }}>
+    <View
+      style={{ marginTop: 16, borderRadius: 10, backgroundColor: theme.cardAlt, borderWidth: 1, borderColor: theme.cardBorder, overflow: "hidden" }}
+      onLayout={(e: LayoutChangeEvent) => setSvgWidth(e.nativeEvent.layout.width)}
+    >
+      <Text style={{ fontSize: 10, fontWeight: "800", color: theme.textFaint, letterSpacing: 1, marginTop: 12, textAlign: "center" }}>
         PROGRESS
       </Text>
-      <View style={{ flexDirection: "row", gap: 16 }}>
-        <MiniBarChart label="AVG REPS" data={repsData} accentColor={accentColor} theme={theme} />
+      <Svg width={svgWidth} height={H}>
+        {/* Y-axis grid lines + labels */}
+        {yTicks.map((tick) => {
+          const y = yPos(tick);
+          return (
+            <React.Fragment key={tick}>
+              <Line
+                x1={padL} y1={y} x2={padL + plotW} y2={y}
+                stroke={theme.cardBorder} strokeWidth={1} strokeDasharray="3,3"
+              />
+              <SvgText
+                x={padL - 5} y={y + 4}
+                fontSize={9} fill={theme.textFaint} textAnchor="end" fontWeight="600"
+              >
+                {tick}
+              </SvgText>
+            </React.Fragment>
+          );
+        })}
+
+        {/* Y-axis line */}
+        <Line x1={padL} y1={padT} x2={padL} y2={padT + plotH} stroke={theme.textFaint} strokeWidth={1} opacity={0.4} />
+        {/* X-axis line */}
+        <Line x1={padL} y1={padT + plotH} x2={padL + plotW} y2={padT + plotH} stroke={theme.textFaint} strokeWidth={1} opacity={0.4} />
+
+        {/* X-axis week labels */}
+        {weeks.map((w, i) => (
+          <SvgText
+            key={w}
+            x={xPos(i)} y={padT + plotH + 14}
+            fontSize={9} fill={theme.textFaint} textAnchor="middle" fontWeight="600"
+          >
+            {w}
+          </SvgText>
+        ))}
+
+        {/* "week" axis label */}
+        <SvgText
+          x={padL + plotW / 2} y={H - 4}
+          fontSize={9} fill={theme.textFaint} textAnchor="middle" fontWeight="700"
+        >
+          week
+        </SvgText>
+
+        {/* Reps polyline */}
+        {repsPoints.length > 0 && (
+          <Polyline points={repsPoints} fill="none" stroke={REPS_COLOR} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        )}
+
+        {/* Weight polyline */}
+        {hasWeight && weightPoints.length > 0 && (
+          <Polyline points={weightPoints} fill="none" stroke={WEIGHT_COLOR} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        )}
+
+        {/* Reps dots + value labels */}
+        {repsData.map((v, i) => {
+          if (v === null || v === 0) return null;
+          const x = xPos(i);
+          const y = yPos(v);
+          return (
+            <React.Fragment key={`rd-${i}`}>
+              <Circle cx={x} cy={y} r={4} fill={REPS_COLOR} />
+              <SvgText x={x} y={y - 7} fontSize={8} fill={REPS_COLOR} textAnchor="middle" fontWeight="700">
+                {v}
+              </SvgText>
+            </React.Fragment>
+          );
+        })}
+
+        {/* Weight dots + value labels */}
+        {hasWeight && weightData.map((v, i) => {
+          if (v === null || v === 0) return null;
+          const x = xPos(i);
+          const y = yPos(v);
+          return (
+            <React.Fragment key={`wd-${i}`}>
+              <Circle cx={x} cy={y} r={4} fill={WEIGHT_COLOR} />
+              <SvgText x={x} y={y + 14} fontSize={8} fill={WEIGHT_COLOR} textAnchor="middle" fontWeight="700">
+                {v}
+              </SvgText>
+            </React.Fragment>
+          );
+        })}
+      </Svg>
+
+      {/* Legend */}
+      <View style={{ flexDirection: "row", justifyContent: "center", gap: 20, paddingBottom: 12 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: REPS_COLOR }} />
+          <Text style={{ fontSize: 10, fontWeight: "700", color: REPS_COLOR }}>reps</Text>
+        </View>
         {hasWeight && (
-          <MiniBarChart label="AVG WEIGHT" data={weightData} accentColor="#f59e0b" theme={theme} unit={unit} />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: WEIGHT_COLOR }} />
+            <Text style={{ fontSize: 10, fontWeight: "700", color: WEIGHT_COLOR }}>weight ({unit})</Text>
+          </View>
         )}
       </View>
     </View>
