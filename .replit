@@ -34,7 +34,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx expo start --web --port 5000 --tunnel"
+args = "npx expo start --web --port 5000"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -72,7 +72,3 @@ externalPort = 3001
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 23636
-externalPort = 3002
