@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IronSplit — 4-Day Strength Training Tracker</title>
+  <meta name="description" content="Track your 4-day upper/lower split workouts, sets, reps & weekly progress. No account required. Free on iOS and Android." />
+  <meta property="og:title" content="IronSplit — 4-Day Strength Tracker" />
+  <meta property="og:description" content="A clean, focused workout tracker built for the classic 4-day Upper/Lower training split." />
+  <meta property="og:image" content="feature-graphic-1024x500.png" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/png" href="icon.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --amber: #f59e0b;
+      --amber-dim: #d97706;
+      --bg: #0f0f0f;
+      --bg2: #1a1a1a;
+      --bg3: #242424;
+      --text: #f1f1f1;
+      --muted: #9ca3af;
+      --faint: #4b5563;
+      --card: #1e1e1e;
+      --border: #2a2a2a;
+      --radius: 14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 32px;
+      background: rgba(15,15,15,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { width: 32px; height: 32px; border-radius: 8px; }
+    .nav-logo span { font-size: 18px; font-weight: 900; letter-spacing: 1px; }
+    .nav-logo .iron { color: var(--amber); }
+    .nav-logo .split { color: var(--text); }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 600; transition: color .2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--amber); color: #000; padding: 8px 18px; border-radius: 20px;
+      font-size: 13px; font-weight: 800; text-decoration: none; transition: background .2s;
+    }
+    .nav-cta:hover { background: var(--amber-dim); color: #000; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245,158,11,0.12) 0%, transparent 70%);
+    }
+    .hero-icon {
+      width: 96px; height: 96px; border-radius: 22px;
+      box-shadow: 0 0 40px rgba(245,158,11,0.3);
+      margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-size: clamp(48px, 10vw, 88px);
+      font-weight: 900;
+      letter-spacing: 4px;
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+    .hero h1 .iron { color: var(--amber); }
+    .hero h1 .split { color: var(--text); }
+    .hero-sub {
+      font-size: clamp(16px, 2.5vw, 20px);
+      color: var(--muted);
+      max-width: 520px;
+      margin-bottom: 40px;
+      font-weight: 500;
+    }
+    .hero-badges {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 48px;
+    }
+    .badge {
+      background: var(--bg3); border: 1px solid var(--border);
+      padding: 6px 14px; border-radius: 20px;
+      font-size: 13px; font-weight: 700; color: var(--muted);
+    }
+    .badge.amber { border-color: var(--amber); color: var(--amber); background: rgba(245,158,11,0.08); }
+    .download-row {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    }
+    .dl-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 22px; border-radius: 12px;
+      text-decoration: none; font-weight: 700; font-size: 14px;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .dl-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+    .dl-btn-ios {
+      background: var(--text); color: #000;
+    }
+    .dl-btn-android {
+      background: var(--amber); color: #000;
+    }
+    .dl-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+    .dl-btn-text { display: flex; flex-direction: column; text-align: left; }
+    .dl-btn-text small { font-size: 10px; font-weight: 600; opacity: 0.6; line-height: 1; }
+    .dl-btn-text span { font-size: 15px; font-weight: 900; line-height: 1.3; }
+
+    /* ── SCREENSHOTS ── */
+    .screenshots {
+      padding: 80px 24px;
+      overflow: hidden;
+    }
+    .section-label {
+      text-align: center; font-size: 12px; font-weight: 800;
+      letter-spacing: 2px; color: var(--amber); margin-bottom: 12px;
+    }
+    .section-title {
+      text-align: center; font-size: clamp(26px, 5vw, 38px); font-weight: 900;
+      color: var(--text); margin-bottom: 48px;
+    }
+    .screenshot-row {
+      display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+    }
+    .screenshot-frame {
+      border-radius: var(--radius); overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+      width: 220px; flex-shrink: 0;
+      transition: transform .2s;
+    }
+    .screenshot-frame:hover { transform: translateY(-6px); }
+    .screenshot-frame img { width: 100%; display: block; }
+    .screenshot-label {
+      background: var(--bg2); padding: 10px 14px;
+      font-size: 11px; font-weight: 700; color: var(--muted); text-align: center;
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 80px 24px;
+      background: var(--bg2);
+    }
+    .features-grid {
+      max-width: 960px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+    }
+    .feature-icon { font-size: 28px; margin-bottom: 12px; }
+    .feature-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 8px; color: var(--text); }
+    .feature-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    /* ── DAYS ── */
+    .days {
+      padding: 80px 24px;
+    }
+    .days-grid {
+      max-width: 800px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+    .day-card {
+      border-radius: var(--radius); padding: 20px;
+      border: 1px solid var(--border);
+    }
+    .day-card.push  { background: rgba(99,102,241,0.08); border-color: rgba(99,102,241,0.25); }
+    .day-card.quad  { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.25); }
+    .day-card.pull  { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.25); }
+    .day-card.hinge { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.25); }
+    .day-emoji { font-size: 24px; margin-bottom: 8px; }
+    .day-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+    .day-sub   { font-size: 12px; color: var(--muted); font-weight: 600; }
+    .day-muscles { font-size: 11px; color: var(--faint); margin-top: 8px; }
+
+    /* ── NO-BS SECTION ── */
+    .no-bs {
+      padding: 80px 24px;
+      background: var(--bg2);
+    }
+    .no-bs-inner {
+      max-width: 640px; margin: 0 auto; text-align: center;
+    }
+    .no-bs h2 { font-size: clamp(26px,5vw,36px); font-weight: 900; margin-bottom: 20px; }
+    .no-bs p { font-size: 16px; color: var(--muted); line-height: 1.7; }
+    .no-bs ul {
+      list-style: none; margin-top: 28px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .no-bs li {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px 18px; font-size: 15px; font-weight: 600; color: var(--text);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .no-bs li span { color: var(--amber); font-size: 18px; }
+
+    /* ── CTA ── */
+    .cta-section {
+      padding: 100px 24px;
+      text-align: center;
+      background: radial-gradient(ellipse 80% 80% at 50% 100%, rgba(245,158,11,0.1) 0%, transparent 70%);
+    }
+    .cta-section h2 { font-size: clamp(28px,5vw,42px); font-weight: 900; margin-bottom: 16px; }
+    .cta-section p { font-size: 16px; color: var(--muted); margin-bottom: 40px; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+      background: var(--bg);
+    }
+    .footer-logo { font-size: 16px; font-weight: 900; letter-spacing: 1px; }
+    .footer-logo .iron { color: var(--amber); }
+    .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 600; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: 12px; color: var(--faint); width: 100%; text-align: center; }
+
+    @media (max-width: 600px) {
+      nav { padding: 12px 16px; }
+      .nav-links { display: none; }
+      .hero { padding: 100px 20px 60px; }
+      .screenshot-frame { width: 160px; }
+      footer { flex-direction: column; text-align: center; }
+      .footer-links { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <img src="icon.png" alt="IronSplit icon" />
+    <span><span class="iron">IRON</span><span class="split">SPLIT</span></span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#days">Program</a>
+    <a href="#download" class="nav-cta">Download Free</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <img class="hero-icon" src="icon.png" alt="IronSplit" />
+  <h1><span class="iron">IRON</span><span class="split">SPLIT</span></h1>
+  <p class="hero-sub">A clean, focused tracker for the 4-day upper/lower strength split. Log your sets, track your progress, and get stronger every week.</p>
+  <div class="hero-badges">
+    <span class="badge amber">Free</span>
+    <span class="badge">No account required</span>
+    <span class="badge">Works offline</span>
+    <span class="badge">iOS &amp; Android</span>
+  </div>
+  <div class="download-row" id="download">
+    <a class="dl-btn dl-btn-ios" href="https://apps.apple.com/app/ironsplit/id6743341697" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+      <div class="dl-btn-text"><small>Download on the</small><span>App Store</span></div>
+    </a>
+    <a class="dl-btn dl-btn-android" href="https://play.google.com/store/apps/details?id=com.alexrp8.ironsplit" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76c.3.17.64.22.97.15l11.09-11.09L12 9.58 3.18 23.76zm16.49-9.47-2.8-1.62-3.14 3.14 3.14 3.14 2.82-1.63c.8-.46.8-1.57-.02-2.03zM2.01 1.05C1.83 1.34 1.75 1.7 1.75 2.1v19.8c0 .4.08.76.26 1.05L13.37 12 2.01 1.05zm10.62 9.33 3.14-3.14-8.89-5.13c-.37-.21-.77-.26-1.13-.17L13.37 12l-.74-.62z"/></svg>
+      <div class="dl-btn-text"><small>Get it on</small><span>Google Play</span></div>
+    </a>
+  </div>
+</section>
+
+<!-- SCREENSHOTS -->
+<section class="screenshots" id="screenshots">
+  <p class="section-label">IN ACTION</p>
+  <h2 class="section-title">Everything you need, nothing you don't</h2>
+  <div class="screenshot-row">
+    <div class="screenshot-frame">
+      <img src="screenshot-01-home.jpg" alt="Home screen — weekly schedule" loading="lazy" />
+      <div class="screenshot-label">Weekly Schedule</div>
+    </div>
+    <div class="screenshot-frame">
+      <img src="screenshot-02-workout-day1.jpg" alt="Day 1 — Push workout" loading="lazy" />
+      <div class="screenshot-label">Push Day</div>
+    </div>
+    <div class="screenshot-frame">
+      <img src="screenshot-03-workout-day2.jpg" alt="Day 2 — Quad workout" loading="lazy" />
+      <div class="screenshot-label">Quad Day</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <p class="section-label">FEATURES</p>
+  <h2 class="section-title">Built for serious training</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Set &amp; Rep Logging</h3>
+      <p>Log weight and reps for every set. Inputs turn green as you complete them so you always know where you are.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <h3>Progress Charts</h3>
+      <p>Week-over-week line graph showing reps and weight trends. See exactly how you're progressing over time.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⏱️</div>
+      <h3>Rest Timers</h3>
+      <p>Built-in compound and isolation rest timers with vibration and beep alerts. Never lose track of your rest period.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔄</div>
+      <h3>Exercise Variations</h3>
+      <p>Swap any exercise for a curated alternative without losing your tracking data. 3+ variations per movement.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🗓️</div>
+      <h3>12-Week Program</h3>
+      <p>Structured as a full 12-week progressive block. Review past sessions and track your long-term strength gains.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌙</div>
+      <h3>Dark &amp; Light Mode</h3>
+      <p>Easy on the eyes day or night. Theme preference and kg/lbs unit are saved automatically.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DAYS -->
+<section class="days" id="days">
+  <p class="section-label">THE PROGRAM</p>
+  <h2 class="section-title">4 days. Maximum gains.</h2>
+  <div class="days-grid">
+    <div class="day-card push">
+      <div class="day-emoji">🏋️</div>
+      <div class="day-title">Day 1 — Push</div>
+      <div class="day-sub">Monday</div>
+      <div class="day-muscles">Chest · Shoulders · Triceps</div>
+    </div>
+    <div class="day-card quad">
+      <div class="day-emoji">🦵</div>
+      <div class="day-title">Day 2 — Quad</div>
+      <div class="day-sub">Tuesday</div>
+      <div class="day-muscles">Quads · Glutes · Hamstrings</div>
+    </div>
+    <div class="day-card pull">
+      <div class="day-emoji">💪</div>
+      <div class="day-title">Day 3 — Pull</div>
+      <div class="day-sub">Thursday</div>
+      <div class="day-muscles">Lats · Mid-Back · Traps · Biceps</div>
+    </div>
+    <div class="day-card hinge">
+      <div class="day-emoji">🔥</div>
+      <div class="day-title">Day 4 — Hinge</div>
+      <div class="day-sub">Friday</div>
+      <div class="day-muscles">Hamstrings · Glutes · Lower Back</div>
+    </div>
+  </div>
+</section>
+
+<!-- NO BS -->
+<section class="no-bs">
+  <div class="no-bs-inner">
+    <h2>No fluff. Just training.</h2>
+    <p>IronSplit is designed to stay out of your way. Open it in the gym, log your sets, and get back to lifting.</p>
+    <ul>
+      <li><span>✓</span> No account or sign-up required</li>
+      <li><span>✓</span> Works completely offline</li>
+      <li><span>✓</span> All data stored on your device</li>
+      <li><span>✓</span> No subscriptions or paywalls</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Start training smarter today</h2>
+  <p>Free on iOS and Android. No sign-up, no subscriptions.</p>
+  <div class="download-row">
+    <a class="dl-btn dl-btn-ios" href="https://apps.apple.com/app/ironsplit/id6743341697" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+      <div class="dl-btn-text"><small>Download on the</small><span>App Store</span></div>
+    </a>
+    <a class="dl-btn dl-btn-android" href="https://play.google.com/store/apps/details?id=com.alexrp8.ironsplit" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76c.3.17.64.22.97.15l11.09-11.09L12 9.58 3.18 23.76zm16.49-9.47-2.8-1.62-3.14 3.14 3.14 3.14 2.82-1.63c.8-.46.8-1.57-.02-2.03zM2.01 1.05C1.83 1.34 1.75 1.7 1.75 2.1v19.8c0 .4.08.76.26 1.05L13.37 12 2.01 1.05zm10.62 9.33 3.14-3.14-8.89-5.13c-.37-.21-.77-.26-1.13-.17L13.37 12l-.74-.62z"/></svg>
+      <div class="dl-btn-text"><small>Get it on</small><span>Google Play</span></div>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo"><span class="iron">IRON</span>SPLIT</div>
+  <div class="footer-links">
+    <a href="privacy-policy.html">Privacy Policy</a>
+    <a href="mailto:support@ironspli.net">Contact</a>
+  </div>
+  <p class="footer-copy">© 2025 IronSplit. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
