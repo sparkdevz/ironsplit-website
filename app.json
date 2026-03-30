@@ -15,9 +15,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.alexrp8.ironsplit",
-      "buildNumber": "9",
+      "buildNumber": "10",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": [],
         "NSMicrophoneUsageDescription": "IronSplit does not use the microphone.",
         "SKAdNetworkItems": [
           { "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork" },
@@ -66,7 +67,8 @@
         "expo-audio",
         {
           "microphonePermission": false,
-          "backgroundAudio": false
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
         }
       ],
       [
